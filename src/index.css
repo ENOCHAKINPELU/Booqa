@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Same base + component classes as frontend/src/index.css — Booqa reuses
+   HotelOps' visual language rather than inventing a parallel one. */
+
+@layer base {
+  body {
+    @apply font-sans bg-gray-50 text-gray-900 antialiased;
+  }
+  * {
+    @apply border-gray-200;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-800
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
+           focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+           hover:-translate-y-px active:translate-y-0 active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-300
+           hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500;
+  }
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm transition-all duration-150
+           focus:outline-none focus:ring-4 focus:ring-primary-500/15 focus:border-primary-500
+           placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+  }
+}
+
+/* "Download receipt" on ConfirmationPage.jsx uses the browser's own
+   print-to-PDF rather than a new PDF-generation dependency — everything
+   outside .receipt-print is hidden, so the print/save dialog only ever
+   shows the receipt itself, not the header/nav/page chrome around it. */
+@media print {
+  body * { visibility: hidden; }
+  .receipt-print, .receipt-print * { visibility: visible; }
+  .receipt-print { position: absolute; top: 0; left: 0; width: 100%; }
+  .receipt-print .no-print { display: none !important; }
+}

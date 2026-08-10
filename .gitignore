@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment files — never committed, .env holds real API keys/DB creds
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+
+# Runtime/platform state
+.vercel/
+
+# Logs and OS/editor files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
