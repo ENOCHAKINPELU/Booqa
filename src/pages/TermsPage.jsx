@@ -6,7 +6,7 @@ export default function TermsPage() {
     <LegalPage title="Terms of Service" updated="August 2026">
       <p>
         Booqa is in early access, currently serving hotels in Port Harcourt, Rivers State.
-        A formal Terms of Service will be published before public launch — this page exists
+        A formal Terms of Service will be published before public launch - this page exists
         so nothing in the app links to a dead page in the meantime, and to set expectations
         plainly while that document is being finalized.
       </p>
@@ -14,7 +14,7 @@ export default function TermsPage() {
         In plain terms: Booqa connects you directly with independent hotels. Each hotel sets
         its own room rates, availability, and cancellation terms, shown to you before you
         confirm a booking. Booqa passes your reservation details to the hotel through its own
-        systems so they can prepare for your stay — it does not operate the hotel, and is not
+        systems so they can prepare for your stay - it does not operate the hotel, and is not
         the merchant of record for your room.
       </p>
       <p>

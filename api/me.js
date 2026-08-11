@@ -2,7 +2,7 @@ import * as db from '../lib/db.js';
 import { getSessionFromRequest } from '../lib/auth.js';
 import { ok, fail } from '../lib/respond.js';
 
-// Returns 401 when not authenticated — standard REST convention, and what
+// Returns 401 when not authenticated - standard REST convention, and what
 // lets the frontend's silent-refresh interceptor (services/api.js) detect
 // "access token expired, worth trying a refresh" versus every other kind
 // of failure. AuthContext catches the 401 itself and just sets guest to

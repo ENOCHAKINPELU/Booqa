@@ -5,12 +5,12 @@ import api from '../services/api';
 import { formatMoney } from '../utils/dates';
 
 // Right-side hero showpiece. Every hotel, photo and price shown here is
-// real — sourced from the same live GET /hotels + GET /hotels/:id/room-types
+// real - sourced from the same live GET /hotels + GET /hotels/:id/room-types
 // calls the rest of the app uses, not mocked data. Two things are
 // deliberately real-or-honest rather than fabricated:
 //  - price: the cheapest active room type's base_rate, fetched per hotel.
 //  - rating: hotels.avg_rating doesn't exist in the schema yet (PRD §5.3
-//    marks it "planned, not applied") — so this always renders a "New on
+//    marks it "planned, not applied") - so this always renders a "New on
 //    Booqa" pill today instead of a made-up star rating, and will start
 //    showing real stars automatically the moment that column ships and
 //    GET /hotels starts returning it, with no change needed here.
@@ -112,7 +112,7 @@ export default function FloatingHotelCards({ hotels }) {
   }, [list.map((h) => h.id).join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // One room-types call per hotel, in parallel, tolerant of individual
-  // failures — a hotel with no bookable room type just shows no price.
+  // failures - a hotel with no bookable room type just shows no price.
   // requestedRef (not state) is what actually dedupes React.StrictMode's
   // double-invoked effect: both invocations fire in the same tick, before
   // either's setEnrichment has landed, so checking `enrichment[id]` alone

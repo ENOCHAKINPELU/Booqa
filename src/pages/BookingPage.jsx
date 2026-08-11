@@ -25,7 +25,7 @@ export default function BookingPage() {
   const [form, setForm] = useState({ guest_name: '', guest_email: '', guest_phone: '', company: '', expected_arrival_time: '', special_requests: '' });
   const [showOptional, setShowOptional] = useState(false);
 
-  // Signed-in guests skip retyping their details — the account link itself
+  // Signed-in guests skip retyping their details - the account link itself
   // is bound server-side from the session cookie (api/proxy/[...path].js),
   // not from anything sent in this form, so prefilling here is purely a
   // convenience, not a trust boundary.
@@ -39,7 +39,7 @@ export default function BookingPage() {
     }
   }, [guest]);
 
-  // Generated once per checkout attempt — reused across retries so a
+  // Generated once per checkout attempt - reused across retries so a
   // network hiccup or a double-tap on "Confirm booking" can't create two
   // reservations for the same attempt.
   const idempotencyKey = useRef(newIdempotencyKey());

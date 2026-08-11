@@ -12,8 +12,8 @@ const SUB_RATINGS = [
   { key: 'rating_value', label: 'Value for money' },
 ];
 
-// submit_review (029) is the real gate — checked_out + owns the
-// reservation + not already reviewed — this form just gives the guest a
+// submit_review (029) is the real gate - checked_out + owns the
+// reservation + not already reviewed - this form just gives the guest a
 // clean way to hit it. Server errors (STAY_NOT_COMPLETED,
 // ALREADY_REVIEWED, etc.) surface verbatim via err.friendlyMessage
 // rather than this form trying to pre-guess every case.

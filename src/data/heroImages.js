@@ -1,6 +1,6 @@
-// Landing-page hero rotation. These are licensed stock photos (Unsplash —
+// Landing-page hero rotation. These are licensed stock photos (Unsplash -
 // free for commercial use), chosen and verified to actually depict hotel
-// bedrooms, not a placeholder gradient or generic travel imagery — but
+// bedrooms, not a placeholder gradient or generic travel imagery - but
 // they are NOT real Booqa/Port Harcourt properties. Swap this array for
 // real listed-hotel photography as soon as it exists; nothing else in
 // HeroCarousel.jsx needs to change when you do.

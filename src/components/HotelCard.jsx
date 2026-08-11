@@ -5,7 +5,7 @@ import { formatMoney } from '../utils/dates';
 import SaveHotelButton from './SaveHotelButton';
 
 // verified/from_price/amenities all come straight from GET /hotels
-// (hotels.service.js's listBookableHotels) — "verified" isn't a claim
+// (hotels.service.js's listBookableHotels) - "verified" isn't a claim
 // this card invents, it's true by construction of that query's own
 // filters (active, Booqa-opted-in, live subscription). avg_rating comes
 // from the same call once published reviews exist; until then it's
@@ -13,14 +13,14 @@ import SaveHotelButton from './SaveHotelButton';
 export default function HotelCard({ hotel, searchParams, initialSaved = false }) {
   const location = [hotel.city, hotel.state].filter(Boolean).join(', ');
   // Not pre-checked against /api/favorites here for search/featured grids
-  // — one duplicate fetch per card for data the guest's own /account/
+  // - one duplicate fetch per card for data the guest's own /account/
   // saved page already shows authoritatively. Worst case there, a guest
   // who already saved this hotel sees an unfilled heart and taps it
   // again; the DB's UNIQUE(guest, hotel) + ON CONFLICT DO NOTHING makes
   // that a harmless no-op, not a duplicate or an error.
   //
   // SavedHotelsPage is different: every card it renders is, by
-  // definition, already saved — showing an unfilled heart there would be
+  // definition, already saved - showing an unfilled heart there would be
   // actively wrong, not just a missed optimization, so it passes
   // initialSaved={true} instead of leaving this to guess.
   const [saved, setSaved] = useState(initialSaved);

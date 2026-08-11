@@ -30,7 +30,7 @@ export default function HotelDetailPage() {
     api.get(`/hotels/${hotelId}`)
       .then(r => { setHotel(r.data.data); addRecentlyViewed(r.data.data); track('hotel_viewed', { hotel_id: hotelId, hotel_name: r.data.data?.name }); })
       .catch(() => setError('This hotel could not be found.'));
-    // Best-effort — a signed-out guest gets a 401 here, which just means
+    // Best-effort - a signed-out guest gets a 401 here, which just means
     // the heart shows "not saved", the honest default when there's
     // nothing to check.
     authApi.get('/favorites')

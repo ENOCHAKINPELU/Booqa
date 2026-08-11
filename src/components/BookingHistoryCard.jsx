@@ -12,7 +12,7 @@ const STATUS_STYLES = {
   no_show: 'bg-red-50 text-red-700',
 };
 
-// Deliberately minimal — the hotel, the dates, the reference, the total,
+// Deliberately minimal - the hotel, the dates, the reference, the total,
 // and a link to the existing confirmation page for anything more (QR code,
 // full guest details). A guest scanning their own booking history wants to
 // recognize *which* trip this was at a glance, not read a data table.

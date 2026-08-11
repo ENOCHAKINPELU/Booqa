@@ -8,7 +8,7 @@ import { track } from '../utils/analytics';
 const CANCELLABLE = ['pending_payment', 'confirmed'];
 
 // free_cancellation_hours=null means "always fully refundable" (029's
-// migration note) — the safe default for a hotel that hasn't configured
+// migration note) - the safe default for a hotel that hasn't configured
 // a policy, not an invented fee. Computed client-side from data the
 // lookup already returns; never guessed, never a flat "we'll figure it
 // out later".
@@ -16,11 +16,11 @@ function cancellationPreview(reservation) {
   const rt = reservation.room_types || {};
   const total = Number(reservation.total_amount || 0);
   const isPaid = reservation.status !== 'pending_payment';
-  if (!isPaid) return { fee: 0, refund: 0, isPaid, note: 'No payment has been made yet — nothing to refund.' };
+  if (!isPaid) return { fee: 0, refund: 0, isPaid, note: 'No payment has been made yet - nothing to refund.' };
 
   const freeHours = rt.free_cancellation_hours;
   const feePercent = Number(rt.cancellation_fee_percent || 0);
-  if (freeHours == null) return { fee: 0, refund: total, isPaid, note: 'Free cancellation — full refund.' };
+  if (freeHours == null) return { fee: 0, refund: total, isPaid, note: 'Free cancellation - full refund.' };
 
   const checkIn = new Date(`${reservation.check_in_date}T00:00:00`);
   const hoursUntilCheckIn = (checkIn.getTime() - Date.now()) / 3_600_000;
@@ -33,7 +33,7 @@ function cancellationPreview(reservation) {
     isPaid,
     note: withinFreeWindow
       ? `Free cancellation until ${formatDisplay(deadline.toISOString().slice(0, 10))}.`
-      : `Past the free-cancellation window (${formatDisplay(deadline.toISOString().slice(0, 10))}) — a ${feePercent}% fee applies.`,
+      : `Past the free-cancellation window (${formatDisplay(deadline.toISOString().slice(0, 10))}) - a ${feePercent}% fee applies.`,
   };
 }
 
@@ -41,7 +41,7 @@ const REFUND_LABELS = {
   refund_pending: { label: 'Refund pending', tone: 'text-amber-700 bg-amber-50' },
   refund_processing: { label: 'Refund processing', tone: 'text-blue-700 bg-blue-50' },
   refunded: { label: 'Refund completed', tone: 'text-green-700 bg-green-50' },
-  refund_failed: { label: 'Refund failed — contact support', tone: 'text-red-700 bg-red-50' },
+  refund_failed: { label: 'Refund failed - contact support', tone: 'text-red-700 bg-red-50' },
 };
 
 export default function ManageBookingPage() {
@@ -158,7 +158,7 @@ export default function ManageBookingPage() {
 
           {refundInfo && (
             <span className={`inline-block text-xs font-semibold rounded-full px-2.5 py-1 mt-2 ${refundInfo.tone}`}>
-              {refundInfo.label}{payment.refund_amount ? ` — ${formatMoney(payment.refund_amount, reservation.currency)}` : ''}
+              {refundInfo.label}{payment.refund_amount ? ` - ${formatMoney(payment.refund_amount, reservation.currency)}` : ''}
             </span>
           )}
 

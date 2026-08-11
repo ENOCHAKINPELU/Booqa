@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 
 // Shared shell for /terms and /privacy. Both are honest early-access
-// placeholders, not attorney-drafted legal documents — see each page's own
+// placeholders, not attorney-drafted legal documents - see each page's own
 // content for why, and TermsPage.jsx / PrivacyPage.jsx for what's actually
 // said. Existing so the footer never links to a 404, matching the
 // "coming soon, not fabricated" rule used everywhere else in this app.

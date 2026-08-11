@@ -9,7 +9,7 @@ const ACTIVE_UPCOMING = new Set(['confirmed', 'checked_in']);
 
 // The dashboard's job is one thing: surface the next real thing a guest
 // needs (their next stay), then get out of the way with links to the
-// fuller pages (Module 1 vs Module 2's split) — not duplicate the full
+// fuller pages (Module 1 vs Module 2's split) - not duplicate the full
 // booking list here too.
 export default function DashboardPage() {
   const { guest, loading: authLoading } = useAuth();

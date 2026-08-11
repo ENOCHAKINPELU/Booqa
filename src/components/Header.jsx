@@ -19,7 +19,7 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-lg text-navy">
           {/* Mark from the real logo (public/booqa-logo.png), wordmark set
-              in the app's own type rather than baked into the image — scales
+              in the app's own type rather than baked into the image - scales
               cleanly at any size and stays crisp on retina screens. */}
           <img src="/favicon.png" alt="" className="w-9 h-9" />
           Booqa

@@ -6,7 +6,7 @@ import { formatDisplay, formatMoney, nights } from '../utils/dates';
 import { track } from '../utils/analytics';
 
 // Same inline-checkout pattern as HotelOps' own subscription paywall
-// (frontend/src/pages/subscription/PaywallPage.jsx) — the Flutterwave
+// (frontend/src/pages/subscription/PaywallPage.jsx) - the Flutterwave
 // script is loaded on demand, never bundled.
 function loadFlutterwave() {
   return new Promise((resolve) => {
@@ -76,7 +76,7 @@ export default function PaymentPage() {
       customer: { email: reservation.guest_email, name: reservation.guest_name, phone_number: reservation.guest_phone },
       customizations: {
         title: 'Booqa',
-        description: `${reservation.booking_reference} — ${nights(reservation.check_in_date, reservation.check_out_date)} night(s)`,
+        description: `${reservation.booking_reference} - ${nights(reservation.check_in_date, reservation.check_out_date)} night(s)`,
       },
       callback: function (data) {
         callbackFired = true;

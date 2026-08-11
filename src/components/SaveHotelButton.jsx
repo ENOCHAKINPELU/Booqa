@@ -6,7 +6,7 @@ import { authApi } from '../services/api';
 import { track } from '../utils/analytics';
 
 // Saving is Booqa-owned (api/favorites.js, the booqa_app-scoped DB), not
-// a HotelOps concept — see 029's migration note. Signed-out guests are
+// a HotelOps concept - see 029's migration note. Signed-out guests are
 // sent to sign in rather than shown a button that would just 401; a
 // wishlist tied to nothing is a worse experience than asking once.
 export default function SaveHotelButton({ hotelId, saved, onToggle, className = '' }) {
@@ -29,7 +29,7 @@ export default function SaveHotelButton({ hotelId, saved, onToggle, className = 
         onToggle?.(true);
       }
     } catch {
-      // A failed save/unsave isn't worth an intrusive error — the button
+      // A failed save/unsave isn't worth an intrusive error - the button
       // just doesn't visibly change, which is honest (nothing happened).
     } finally {
       setBusy(false);

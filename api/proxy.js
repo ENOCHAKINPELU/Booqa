@@ -2,19 +2,19 @@ import crypto from 'crypto';
 import { getSessionFromRequest } from '../lib/auth.js';
 
 // The one piece of "backend" Booqa has. The browser never holds
-// BOOQA_HMAC_SECRET or talks to HotelOps directly — it calls this
+// BOOQA_HMAC_SECRET or talks to HotelOps directly - it calls this
 // same-origin serverless function, which signs the request the way
 // HotelOps' middleware/bookingAuth.js expects and forwards it. See the
 // architecture doc §13 and the Phase 2 plan for why this exists at all.
 //
-// A flat file, not api/proxy/[...path].js — that catch-all shape was
+// A flat file, not api/proxy/[...path].js - that catch-all shape was
 // dropped after confirming (with a fresh, minimal repro route) that this
 // `vercel dev` version 404s any catch-all request with more than one path
 // segment, e.g. GET /api/proxy/hotels/:id/room-types, while a single
 // segment like /api/proxy/hotels worked. Rather than depend on Vercel's
 // catch-all path matching at all, the real HotelOps path now travels as a
 // `path` query param to this one static function (see services/api.js's
-// request interceptor, which is the only other half of this change) — a
+// request interceptor, which is the only other half of this change) - a
 // plain query string never touches route matching, in dev or in
 // production, so there's nothing left for that bug to trip over.
 function sign(secret, timestamp, method, path, body) {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   const method = (req.method || 'GET').toUpperCase();
 
   // Every other query param is the real request's own query string
-  // (check_in/check_out/adults/... for availability calls) — `path` is
+  // (check_in/check_out/adults/... for availability calls) - `path` is
   // the only one that exists purely to get the target path here and must
   // not be forwarded on to HotelOps or included in the signature.
   const params = new URLSearchParams(req.query);
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   // the channel (this proxy, via HMAC), not individual guests, and has no
   // way to verify a client-supplied guest id itself. "mine" makes no
   // sense as an anonymous call, so a missing/invalid session is rejected
-  // right here — HotelOps is never even asked.
+  // right here - HotelOps is never even asked.
   if (method === 'GET' && targetPath === '/booking-api/v1/reservations/mine') {
     const session = getSessionFromRequest(req);
     if (!session?.sub) {
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     body.booqa_guest_id = session?.sub || null;
   }
 
-  // Same binding for review submission — a review can only ever be
+  // Same binding for review submission - a review can only ever be
   // attributed to whoever is actually signed in on this browser, never
   // to a client-supplied id. submit_review (029) independently
   // re-verifies this guest owns the reservation being reviewed; this is
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
     'X-Booqa-Timestamp': timestamp,
     'X-Booqa-Signature': signature,
   };
-  // Passed through unchanged — HotelOps' idempotency store keys on it directly.
+  // Passed through unchanged - HotelOps' idempotency store keys on it directly.
   if (req.headers['idempotency-key']) headers['Idempotency-Key'] = req.headers['idempotency-key'];
 
   try {

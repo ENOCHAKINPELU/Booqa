@@ -2,9 +2,9 @@ import React from 'react';
 import { CalendarCheck, CalendarX2, Users, Baby } from 'lucide-react';
 import { todayISO, defaultCheckOut } from '../utils/dates';
 
-// Controlled — the caller owns the values (usually mirrored into the URL's
+// Controlled - the caller owns the values (usually mirrored into the URL's
 // query params) so a reload or a shared link reproduces the same search.
-// Same 4-field grid everywhere it's used (hero, hotel detail, search) —
+// Same 4-field grid everywhere it's used (hero, hotel detail, search) -
 // only the icon/label treatment below is new, the contract is unchanged.
 export default function DateGuestPicker({ checkIn, checkOut, adults, children, onChange, compact = false }) {
   const set = (patch) => onChange({ checkIn, checkOut, adults, children, ...patch });

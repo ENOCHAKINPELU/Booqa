@@ -5,7 +5,7 @@ import { ok, fail } from '../../lib/respond.js';
 // Called by the frontend's silent-refresh interceptor (services/api.js)
 // whenever a routine request comes back 401 because the 15-minute access
 // token expired. Rotates the refresh token on every use (the consumed one
-// is marked revoked, a new one issued) — a stolen refresh token is only
+// is marked revoked, a new one issued) - a stolen refresh token is only
 // ever valid for a single silent refresh before it stops working, not for
 // its entire 30-day lifetime.
 export default async function handler(req, res) {

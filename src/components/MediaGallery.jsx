@@ -57,7 +57,7 @@ export default function MediaGallery({ media = [] }) {
           ))}
 
           {/* The capability is real (Room360Viewer above), the content
-              just isn't uploaded for this room yet — shown rather than
+              just isn't uploaded for this room yet - shown rather than
               hidden so guests (and hotel owners) know the feature exists,
               same honesty rule this app follows for ratings/reviews. */}
           {tours.length === 0 && (

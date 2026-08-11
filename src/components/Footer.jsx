@@ -6,11 +6,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-// Every link here goes somewhere real — no dead anchors, no fabricated
+// Every link here goes somewhere real - no dead anchors, no fabricated
 // social icons for accounts that don't exist. Where a real page doesn't
 // exist yet (Terms, Privacy), it links to an honest placeholder that says
 // so (TermsPage.jsx / PrivacyPage.jsx) rather than a 404 or invented legal
-// text — same "coming soon, not fabricated" rule as the 360° viewer and
+// text - same "coming soon, not fabricated" rule as the 360° viewer and
 // the hero's rating stat.
 export default function Footer() {
   const { guest, loading, logout } = useAuth();
@@ -35,7 +35,7 @@ export default function Footer() {
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Now serving Port Harcourt, Nigeria
             </p>
             <p className="text-xs text-primary-300 mt-2 leading-relaxed max-w-[220px]">
-              Book directly with hotels — real availability, synced live, no third-party resale.
+              Book directly with hotels - real availability, synced live, no third-party resale.
             </p>
           </div>
 

@@ -17,7 +17,7 @@ import { HERO_IMAGES } from '../data/heroImages';
 import { track } from '../utils/analytics';
 import { buildHeroStats } from '../data/heroStats';
 
-// Port Harcourt only for now — no city picker, no multi-city destinations
+// Port Harcourt only for now - no city picker, no multi-city destinations
 // grid. That's a market-scope decision, not a technical limitation: any
 // hotel that opts in on the HotelOps side would appear here too, this
 // page just isn't asking guests to choose a city that doesn't apply yet.
@@ -31,7 +31,7 @@ export default function LandingPage() {
 
   const [featured, setFeatured] = useState([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
-  // True total, not the display-capped `featured` list below — the hero
+  // True total, not the display-capped `featured` list below - the hero
   // stats row's "Verified Hotels" count would silently under-report once
   // there are more than 6 live hotels if it read featured.length instead.
   const [hotelCount, setHotelCount] = useState(null);
@@ -42,7 +42,7 @@ export default function LandingPage() {
     // request-serialization behavior the two calls can resolve out of
     // order, and without this guard a slower *second* call's .catch could
     // overwrite the first call's already-successful data with []. Same
-    // failure shape FloatingHotelCards already guards against — surfaced
+    // failure shape FloatingHotelCards already guards against - surfaced
     // here once its extra concurrent room-types calls made the underlying
     // race actually observable in practice.
     let cancelled = false;
@@ -59,7 +59,7 @@ export default function LandingPage() {
   }, []);
 
   // avgRating stays undefined until a real reviews aggregate exists (PRD
-  // §5.3/§6.8) — buildHeroStats renders an honest "New" state for it, not
+  // §5.3/§6.8) - buildHeroStats renders an honest "New" state for it, not
   // a fabricated number.
   const heroStats = useMemo(() => buildHeroStats({ hotelCount }), [hotelCount]);
 
@@ -152,7 +152,7 @@ export default function LandingPage() {
         {!loadingFeatured && featured.length === 0 && (
           <div className="text-center py-10 text-gray-400">
             <Building2 className="w-8 h-8 mx-auto mb-2" />
-            <p>No hotels are live on Booqa yet — check back soon.</p>
+            <p>No hotels are live on Booqa yet - check back soon.</p>
           </div>
         )}
         {!loadingFeatured && featured.length > 0 && (

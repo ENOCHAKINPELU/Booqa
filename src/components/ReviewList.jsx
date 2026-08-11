@@ -25,7 +25,7 @@ export default function ReviewList({ hotelId }) {
     return (
       <div className="text-center py-8 text-gray-400">
         <MessageSquareOff className="w-7 h-7 mx-auto mb-2" />
-        <p className="text-sm">No reviews yet — be the first to stay and share your experience.</p>
+        <p className="text-sm">No reviews yet - be the first to stay and share your experience.</p>
       </div>
     );
   }

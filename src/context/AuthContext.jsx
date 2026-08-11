@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { authApi } from '../services/api';
 
-// Plain React context, not a new state library — the auth state is small
+// Plain React context, not a new state library - the auth state is small
 // (a guest object or null) and only a handful of components read it.
 const AuthContext = createContext(null);
 

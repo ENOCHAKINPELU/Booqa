@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import HotelCard from '../components/HotelCard';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 
-// Favorites (api/favorites.js, Booqa-owned) only ever returns hotel_ids —
+// Favorites (api/favorites.js, Booqa-owned) only ever returns hotel_ids -
 // this page joins them against the real, already-public hotel listing
 // (GET /hotels) rather than granting booqa_app its own read path into
 // hotels. See 029's migration note for the full reasoning.
@@ -69,7 +69,7 @@ export default function SavedHotelsPage() {
       {!loading && !error && hotels.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <HeartOff className="w-8 h-8 mx-auto mb-2" />
-          <p>No saved hotels yet — tap the heart on any hotel to save it here.</p>
+          <p>No saved hotels yet - tap the heart on any hotel to save it here.</p>
         </div>
       )}
 

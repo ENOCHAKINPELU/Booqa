@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const normalizedEmail = String(email || '').trim().toLowerCase();
   if (!normalizedEmail) return fail(res, 400, 'Email is required', 'VALIDATION_ERROR');
 
-  // Always responds success — never reveals whether an account exists for
+  // Always responds success - never reveals whether an account exists for
   // this email.
   try {
     const result = await db.query('SELECT id, email, full_name FROM booqa_guests WHERE email = $1', [normalizedEmail]);

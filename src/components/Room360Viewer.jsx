@@ -2,19 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Move3d, AlertTriangle } from 'lucide-react';
 
-// Three's own loader cache — without it, React.StrictMode's double-invoked
+// Three's own loader cache - without it, React.StrictMode's double-invoked
 // effect (dev only) fetches the same multi-MB panorama twice in parallel,
 // and revisiting a tour a guest already opened this session re-downloads
 // it instead of reusing the decoded texture.
 THREE.Cache.enabled = true;
 
-// Embedded, drag-to-look-around equirectangular panorama viewer — the
+// Embedded, drag-to-look-around equirectangular panorama viewer - the
 // standard Three.js "camera at the center of an inside-out sphere" pattern
 // (the same technique behind threejs.org's own panorama example), adapted
 // as a self-contained React component. Replaces the previous behavior of
 // just opening the tour_360 media URL in a new tab (see MediaGallery.jsx).
 //
-// Deliberately has no ambient/auto-rotate animation of its own — the view
+// Deliberately has no ambient/auto-rotate animation of its own - the view
 // only moves in response to a real drag, which is what makes this respect
 // prefers-reduced-motion "for free" without needing to special-case it.
 export default function Room360Viewer({ url }) {
@@ -38,7 +38,7 @@ export default function Room360Viewer({ url }) {
     const camera = new THREE.PerspectiveCamera(75, 1, 1, 1100);
     const scene = new THREE.Scene();
 
-    // A sphere viewed from the inside — scale.x = -1 flips the geometry's
+    // A sphere viewed from the inside - scale.x = -1 flips the geometry's
     // winding order so the texture faces inward toward the camera at the
     // origin, instead of outward like a normal sphere would render it.
     const geometry = new THREE.SphereGeometry(500, 60, 40);
@@ -76,10 +76,10 @@ export default function Room360Viewer({ url }) {
       renderer.setSize(w, h);
     };
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x111827, 1); // gray-900 — matches the loading/error state instead of Three's default white-through-transparent
+    renderer.setClearColor(0x111827, 1); // gray-900 - matches the loading/error state instead of Three's default white-through-transparent
     // insertBefore, not appendChild: the loading/error/hint overlays below
     // are React-rendered children of this same container, and an
-    // imperatively appended canvas would land *after* them in DOM order —
+    // imperatively appended canvas would land *after* them in DOM order -
     // painting over them for the entire time status is 'loading' or
     // 'error', since nothing here sets an explicit z-index.
     container.insertBefore(renderer.domElement, container.firstChild);

@@ -10,13 +10,13 @@ const CATEGORIES = [
   { id: 'budget', label: 'Budget', icon: Wallet },
 ];
 
-// Presentational category shortcuts, not a real filter yet — hotels.hotel_type
+// Presentational category shortcuts, not a real filter yet - hotels.hotel_type
 // doesn't exist in the schema (§5.1 has no such column), so there's nothing
 // on the backend for these to actually query against today. Wiring is kept
 // self-contained (local toggle state only, no navigation) specifically so
 // this doesn't *look* more functional than it is. The moment a real
 // category/tag field ships, this becomes `onChange(activeId)` calling
-// /search?category=... instead of a no-op setState — same markup either way.
+// /search?category=... instead of a no-op setState - same markup either way.
 export default function FeaturePills() {
   const [active, setActive] = useState(null);
 

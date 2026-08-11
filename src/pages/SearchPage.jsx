@@ -8,10 +8,10 @@ import FilterPanel from '../components/FilterPanel';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 import { track } from '../utils/analytics';
 
-// Results only — the hero/search entry point lives on LandingPage ("/").
+// Results only - the hero/search entry point lives on LandingPage ("/").
 // This page just refines and displays results for whatever search brought
 // a guest here, and stays bookmarkable/shareable via its own URL. No city
-// filter — Port Harcourt only for now (a market-scope decision, not a
+// filter - Port Harcourt only for now (a market-scope decision, not a
 // missing feature); GET /hotels already only returns what's opted in.
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -73,7 +73,7 @@ export default function SearchPage() {
     setSearchParams(next);
   };
 
-  // Every option offered is guaranteed to match at least one real hotel —
+  // Every option offered is guaranteed to match at least one real hotel -
   // see FilterPanel.jsx for why nothing here is a fixed/aspirational list.
   const amenityOptions = useMemo(
     () => [...new Set(hotels.flatMap((h) => h.amenities || []))].sort(),

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Quote } from 'lucide-react';
 
-// Deliberately renders nothing until real testimonials exist — this is
+// Deliberately renders nothing until real testimonials exist - this is
 // evidentiary content (it tells a guest "other people trust this"), not
 // placeholder UI copy, so it's not something to fabricate. Wire this up
 // once real guest reviews exist (Slice 4 / the roadmap's Phase 2 Reviews

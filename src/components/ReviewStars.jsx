@@ -2,9 +2,9 @@ import React from 'react';
 import { Star } from 'lucide-react';
 
 // Same component for both display (interactive=false) and picking a
-// rating (interactive=true, onChange) — one star-rendering
+// rating (interactive=true, onChange) - one star-rendering
 // implementation instead of two that could drift apart visually.
-// `value: null` renders nothing filled — never a fabricated default,
+// `value: null` renders nothing filled - never a fabricated default,
 // same rule §6.1's ReviewStars spec already set for this app.
 export default function ReviewStars({ value, onChange, size = 'w-4 h-4', interactive = false, label }) {
   const stars = [1, 2, 3, 4, 5];

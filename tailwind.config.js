@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-// Palette re-anchored to the real Booqa logo (public/booqa-logo.png) — every
+// Palette re-anchored to the real Booqa logo (public/booqa-logo.png) - every
 // value below was pixel-sampled from the actual artwork, not eyeballed:
 // the mark's royal blue sampled to #10308F, its gold to #F8C410. The
 // `primary` scale is a tint/shade ramp built around that exact blue so
@@ -23,7 +23,7 @@ export default {
           800: '#0B2570',
           900: '#081C57',
         },
-        navy: '#10308F', // alias of primary-700 — the logo has one blue, not two
+        navy: '#10308F', // alias of primary-700 - the logo has one blue, not two
         accent: '#F8C410', // exact logo gold
         'accent-dark': '#D9A80D', // hover/pressed state for gold elements
         'accent-soft': '#FDF3D9', // light gold tint for backgrounds/badges
@@ -32,7 +32,7 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
-        // Slow cinematic drift for the hero background photos — see
+        // Slow cinematic drift for the hero background photos - see
         // HeroCarousel.jsx. Runs continuously on every image regardless of
         // which is currently visible (crossfade handles visibility), so
         // there's never a jump-cut when the active photo changes.
@@ -40,14 +40,14 @@ export default {
           '0%': { transform: 'scale(1) translate3d(0,0,0)' },
           '100%': { transform: 'scale(1.09) translate3d(-0.5%, -0.5%, 0)' },
         },
-        // Gentle vertical drift for the floating hotel cards — see
+        // Gentle vertical drift for the floating hotel cards - see
         // FloatingHotelCards.jsx. Gives the stack a "breathing" feel
         // without ever being fast enough to distract from the search form.
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
         },
-        // One-shot entrance for the hero's text column on load — not a
+        // One-shot entrance for the hero's text column on load - not a
         // loop, just a soft lift-and-fade so the page doesn't feel static
         // the instant it paints.
         heroFadeIn: {

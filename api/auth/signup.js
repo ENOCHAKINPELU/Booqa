@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     );
     const guest = inserted.rows[0];
 
-    // Account is usable immediately — verification is a nudge, not a gate
+    // Account is usable immediately - verification is a nudge, not a gate
     // (see the Slice 1 plan for why: minimal friction on signup/booking).
     const rawToken = generateRawToken();
     await db.query(

@@ -7,13 +7,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Serves booqa/api/**/*.js (the same Vercel serverless functions used in
 // production) directly inside Vite's own dev server, instead of through
 // `vercel dev`. Added after `vercel dev`'s serverless-function runtime
-// proved to crash reliably on this machine (Windows + this Node version —
+// proved to crash reliably on this machine (Windows + this Node version -
 // "Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file
 // src\win\async.c, line 76" on essentially every invocation, not just
 // under heavy load as first suspected), while plain `vite` has been
 // rock-solid all session. Every api/*.js file is already written against
 // plain Node req/res semantics (req.headers, res.setHeader, res.status().
-// json()) — not an Express app — so it only needs req.query/req.body
+// json()) - not an Express app - so it only needs req.query/req.body
 // parsed and a status()/json() shim added, nothing about the handlers
 // themselves changes. `vercel dev` (via `npm run dev:full`) remains
 // available for testing actual Vercel routing/build behavior before a
@@ -44,7 +44,7 @@ export default function localApiPlugin() {
     configureServer(server) {
       // Registered directly in configureServer (not returned as a
       // post-hook) so Vite installs it before its own SPA/history-fallback
-      // middleware — otherwise every /api/* request would be swallowed by
+      // middleware - otherwise every /api/* request would be swallowed by
       // the same kind of catch-all-shadowing bug already hit once this
       // session with vercel.json's rewrite.
       server.middlewares.use(async (req, res, next) => {

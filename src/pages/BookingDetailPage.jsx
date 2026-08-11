@@ -7,7 +7,7 @@ import ReviewForm from '../components/ReviewForm';
 
 // Timeline only ever shows real timestamps this reservation actually has
 // (created_at is always real; confirmed_at/checked_in_at/checked_out_at/
-// cancelled_at come from the exact RPCs that stamp them — see 029). A
+// cancelled_at come from the exact RPCs that stamp them - see 029). A
 // future step that hasn't happened yet is shown greyed out with no date,
 // never a guessed or invented one.
 function timelineSteps(r) {
@@ -142,7 +142,7 @@ export default function BookingDetailPage() {
       )}
       {hasReview && (
         <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl p-4 mt-6">
-          <Star className="w-4 h-4 fill-green-600 text-green-600" /> Thanks — your review is in and will show once it's been checked.
+          <Star className="w-4 h-4 fill-green-600 text-green-600" /> Thanks - your review is in and will show once it's been checked.
         </div>
       )}
     </div>

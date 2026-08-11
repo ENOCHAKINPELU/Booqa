@@ -4,7 +4,7 @@ import { formatMoney } from '../utils/dates';
 
 // Amenity checkboxes are derived from whatever amenities actually appear
 // across the current result set (hotels.service.js's listBookableHotels
-// unions each hotel's active room-type amenities) — never a fixed list
+// unions each hotel's active room-type amenities) - never a fixed list
 // like "Pool / Gym / Conference" that might not correspond to a single
 // real hotel yet and would silently return zero results if picked. Every
 // filter shown here is guaranteed to match at least one hotel right now.
@@ -21,15 +21,15 @@ export default function FilterPanel({ amenityOptions, selectedAmenities, onToggl
         <label className="block text-xs font-medium text-gray-600 mb-2">Sort by</label>
         <select value={sort} onChange={(e) => onSortChange(e.target.value)} className="input">
           <option value="recommended">Recommended</option>
-          <option value="price_asc">Price — low to high</option>
-          <option value="price_desc">Price — high to low</option>
+          <option value="price_asc">Price - low to high</option>
+          <option value="price_desc">Price - high to low</option>
         </select>
       </div>
 
       {maxPrice > 0 && (
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-2">
-            Max price — {formatMoney(priceRange, 'NGN')}/night
+            Max price - {formatMoney(priceRange, 'NGN')}/night
           </label>
           <input
             type="range"
