@@ -29,8 +29,10 @@ export default function HotelCard({ hotel, searchParams, initialSaved = false })
       to={`/hotels/${hotel.id}?${searchParams.toString()}`}
       className="block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-primary-200 transition-all"
     >
-      <div className="h-36 bg-primary-50 flex items-center justify-center relative">
-        {hotel.logo_url ? (
+      <div className="h-36 bg-primary-50 flex items-center justify-center relative overflow-hidden">
+        {hotel.cover_image_url ? (
+          <img src={hotel.cover_image_url} alt={hotel.name} className="w-full h-full object-cover" />
+        ) : hotel.logo_url ? (
           <img src={hotel.logo_url} alt={hotel.name} className="max-h-full max-w-full object-contain" />
         ) : (
           <Building2 className="w-10 h-10 text-primary-300" />
