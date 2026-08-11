@@ -73,6 +73,20 @@ export default async function handler(req, res) {
     body.booqa_guest_id = session?.sub || null;
   }
 
+  // Same binding for review submission — a review can only ever be
+  // attributed to whoever is actually signed in on this browser, never
+  // to a client-supplied id. submit_review (029) independently
+  // re-verifies this guest owns the reservation being reviewed; this is
+  // just the one place that can honestly assert who's asking.
+  if (method === 'POST' && /^\/booking-api\/v1\/reservations\/[^/]+\/review$/.test(targetPath) && body) {
+    const session = getSessionFromRequest(req);
+    if (!session?.sub) {
+      res.status(401).json({ success: false, data: null, error: { message: 'Sign in to leave a review', code: 'UNAUTHENTICATED' } });
+      return;
+    }
+    body.booqa_guest_id = session.sub;
+  }
+
   const bodyString = hasBody ? JSON.stringify(body || {}) : '';
   const timestamp = Date.now().toString();
   const signature = sign(BOOQA_HMAC_SECRET, timestamp, method, fullPath, bodyString);

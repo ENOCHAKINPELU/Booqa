@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Loader, MapPin, Phone, Building2, BadgeCheck } from 'lucide-react';
-import api from '../services/api';
+import { ArrowLeft, Loader, MapPin, Phone, Building2, BadgeCheck, Star } from 'lucide-react';
+import api, { authApi } from '../services/api';
 import RoomTypeCard from '../components/RoomTypeCard';
 import DateGuestPicker from '../components/DateGuestPicker';
+import SaveHotelButton from '../components/SaveHotelButton';
+import ReviewList from '../components/ReviewList';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 import { addRecentlyViewed } from '../utils/recentlyViewed';
 import { track } from '../utils/analytics';
@@ -17,6 +19,7 @@ export default function HotelDetailPage() {
   const [roomTypes, setRoomTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
 
   const checkIn = searchParams.get('check_in') || tomorrowISO();
   const checkOut = searchParams.get('check_out') || defaultCheckOut(checkIn);
@@ -27,6 +30,12 @@ export default function HotelDetailPage() {
     api.get(`/hotels/${hotelId}`)
       .then(r => { setHotel(r.data.data); addRecentlyViewed(r.data.data); track('hotel_viewed', { hotel_id: hotelId, hotel_name: r.data.data?.name }); })
       .catch(() => setError('This hotel could not be found.'));
+    // Best-effort — a signed-out guest gets a 401 here, which just means
+    // the heart shows "not saved", the honest default when there's
+    // nothing to check.
+    authApi.get('/favorites')
+      .then((r) => setSaved((r.data.data || []).some((f) => f.hotel_id === hotelId)))
+      .catch(() => {});
   }, [hotelId]);
 
   useEffect(() => {
@@ -71,14 +80,24 @@ export default function HotelDetailPage() {
             <div className="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
               {hotel.logo_url ? <img src={hotel.logo_url} alt="" className="max-h-full max-w-full object-contain" /> : <Building2 className="w-6 h-6 text-primary-400" />}
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-gray-900">{hotel.name}</h1>
-                {hotel.verified && (
-                  <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary-700 bg-primary-50 rounded-full px-2 py-1">
-                    <BadgeCheck className="w-3.5 h-3.5" /> Verified Hotel
-                  </span>
-                )}
+            <div className="flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-bold text-gray-900">{hotel.name}</h1>
+                  {hotel.verified && (
+                    <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary-700 bg-primary-50 rounded-full px-2 py-1">
+                      <BadgeCheck className="w-3.5 h-3.5" /> Verified Hotel
+                    </span>
+                  )}
+                  {hotel.avg_rating ? (
+                    <span className="flex items-center gap-1 text-sm font-semibold text-gray-700">
+                      <Star className="w-4 h-4 fill-accent text-accent" /> {hotel.avg_rating} <span className="text-gray-400 font-normal">({hotel.review_count})</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">New on Booqa</span>
+                  )}
+                </div>
+                <SaveHotelButton hotelId={hotel.id} saved={saved} onToggle={setSaved} className="w-9 h-9 flex-shrink-0" />
               </div>
               <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                 <MapPin className="w-3.5 h-3.5" /> {[hotel.address, hotel.city, hotel.state].filter(Boolean).join(', ')}
@@ -118,6 +137,11 @@ export default function HotelDetailPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-10 pt-6 border-t border-gray-100">
+        <h2 className="font-semibold text-gray-900 mb-4">Guest reviews</h2>
+        <ReviewList hotelId={hotelId} />
+      </div>
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function BookingHistoryCard({ reservation: r }) {
 
   return (
     <Link
-      to={`/reservations/${r.id}/confirmation?hotel_id=${hotel?.id || ''}`}
+      to={`/account/bookings/${r.id}?hotel_id=${hotel?.id || ''}`}
       className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all"
     >
       <div className="w-14 h-14 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">

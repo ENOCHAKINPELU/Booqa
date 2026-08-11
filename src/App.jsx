@@ -16,6 +16,9 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
+import BookingsListPage from './pages/BookingsListPage';
+import SavedHotelsPage from './pages/SavedHotelsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -41,6 +44,9 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/account" element={<DashboardPage />} />
+              <Route path="/account/bookings" element={<BookingsListPage />} />
+              <Route path="/account/bookings/:id" element={<BookingDetailPage />} />
+              <Route path="/account/saved" element={<SavedHotelsPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="*" element={<NotFoundPage />} />
