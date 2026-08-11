@@ -48,6 +48,12 @@ export default function RoomTypeCard({ roomType, onBook }) {
                 <span className="flex items-center gap-1"><Maximize2 className="w-3.5 h-3.5" /> {roomType.size_sqm} m²</span>
               )}
             </div>
+            {roomType.amenities?.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1.5 line-clamp-1">
+                {roomType.amenities.slice(0, 4).join(' · ')}
+                {roomType.amenities.length > 4 && ` · +${roomType.amenities.length - 4} more`}
+              </p>
+            )}
             {roomType.cancellation_policy && (
               <p className="flex items-center gap-1 text-xs text-green-700 mt-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" /> {roomType.cancellation_policy}

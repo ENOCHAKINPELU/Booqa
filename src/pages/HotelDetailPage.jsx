@@ -30,6 +30,15 @@ function buildAddressQuery(hotel) {
   return [hotel.address, hotel.area, hotel.city, hotel.state, hotel.country].filter(Boolean).join(', ');
 }
 
+// Room types already come back cheapest-first (room-types.service.js's
+// getAvailability) and each card is already fairly compact, but a hotel
+// with a genuinely large catalog would still turn this into a long wall
+// of cards to scroll past before ever reaching Location/Reviews. Showing
+// the first few and requiring a click to see the rest keeps a
+// small-hotel page exactly as it was (nothing to expand) while capping
+// how much a large one can push everything else down the page.
+const ROOM_PREVIEW_COUNT = 4;
+
 export default function HotelDetailPage() {
   const { hotelId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,6 +49,7 @@ export default function HotelDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [showAllRooms, setShowAllRooms] = useState(false);
 
   const checkIn = searchParams.get('check_in') || tomorrowISO();
   const checkOut = searchParams.get('check_out') || defaultCheckOut(checkIn);
@@ -61,6 +71,7 @@ export default function HotelDetailPage() {
   useEffect(() => {
     setLoading(true);
     setError('');
+    setShowAllRooms(false);
     api.get(`/hotels/${hotelId}/availability`, { params: { check_in: checkIn, check_out: checkOut, adults, children } })
       .then(r => setRoomTypes(r.data.data || []))
       .catch(err => setError(err.friendlyMessage || 'Unable to check availability right now.'))
@@ -166,7 +177,10 @@ export default function HotelDetailPage() {
         <DateGuestPicker checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} onChange={updateDates} />
       </div>
 
-      <h2 className="font-semibold text-gray-900 mb-3">Available rooms</h2>
+      <h2 className="font-semibold text-gray-900 mb-3">
+        Available rooms
+        {!loading && roomTypes.length > 0 && <span className="text-gray-400 font-normal text-sm ml-1.5">({roomTypes.length})</span>}
+      </h2>
 
       {loading && (
         <div className="flex items-center justify-center py-16 text-gray-400">
@@ -182,10 +196,19 @@ export default function HotelDetailPage() {
 
       {!loading && !error && (
         <div className="space-y-4">
-          {roomTypes.map((rt) => (
+          {(showAllRooms ? roomTypes : roomTypes.slice(0, ROOM_PREVIEW_COUNT)).map((rt) => (
             <RoomTypeCard key={rt.room_type_id} roomType={rt} onBook={handleBook} />
           ))}
         </div>
+      )}
+
+      {!loading && !error && !showAllRooms && roomTypes.length > ROOM_PREVIEW_COUNT && (
+        <button
+          onClick={() => setShowAllRooms(true)}
+          className="btn-secondary w-full sm:w-auto mt-3"
+        >
+          Show all {roomTypes.length} room types
+        </button>
       )}
 
       {hotel && (hotel.address || hotel.city) && (
