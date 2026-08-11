@@ -57,6 +57,11 @@ export default function Footer() {
                   <ClipboardList className="w-3.5 h-3.5" /> Manage a booking
                 </Link>
               </li>
+              <li>
+                <Link to="/partner/login" className="flex items-center gap-1.5 text-primary-100 hover:text-white transition-colors">
+                  <Building2 className="w-3.5 h-3.5" /> List your hotel
+                </Link>
+              </li>
             </ul>
           </div>
 
