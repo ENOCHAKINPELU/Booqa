@@ -1,9 +1,18 @@
 import axios from 'axios';
 
 // Hotel-partner side of Booqa (Phase 4) — entirely separate session from
-// the guest-facing `api`/`authApi` in ./api.js. See api/partner/*.js and
+// the guest-facing `api`/`authApi` in ./api.js. See api/partner.js and
 // lib/partnerAuth.js: the partner "session" is just HotelOps' own
 // owner/manager JWT, held in Booqa-domain httpOnly cookies.
+//
+// Both clients below hit the same single serverless function
+// (api/partner.js), dispatched by an `?action=` query param rather than
+// separate files — Vercel's Hobby plan caps a deployment at 12 functions,
+// and five small partner/*.js files pushed this project over that limit
+// and silently failed to deploy (booqa.vercel.app kept serving the old
+// build). One function, `?action=` for Booqa's own auth endpoints and
+// `?path=` for the marketplace proxy, same shape as api/proxy.js already
+// used for the guest side.
 
 // Direct hits to Booqa's own partner auth endpoints (login/logout/refresh/me).
 export const partnerAuthApi = axios.create({
@@ -12,13 +21,18 @@ export const partnerAuthApi = axios.create({
   withCredentials: true,
 });
 
-// Marketplace calls (application, profile, analytics, settlements) — routed
-// through api/partner/proxy.js, which forwards into HotelOps'
-// /api/v1/marketplace/* using the partner's stored access token. Same
-// `?path=` rewrite as the guest `api` client in ./api.js, and for the same
-// `vercel dev` routing reason (see api/proxy.js's comment).
+partnerAuthApi.interceptors.request.use((config) => {
+  const action = (config.url || '').replace(/^\/+/, '');
+  config.params = { ...(config.params || {}), action };
+  config.url = '';
+  return config;
+});
+
+// Marketplace calls (application, profile, analytics, settlements) — same
+// function, no `action` param, forwarded into HotelOps'
+// /api/v1/marketplace/* using the partner's stored access token.
 export const partnerApi = axios.create({
-  baseURL: '/api/partner/proxy',
+  baseURL: '/api/partner',
   timeout: 30000,
   withCredentials: true,
 });
