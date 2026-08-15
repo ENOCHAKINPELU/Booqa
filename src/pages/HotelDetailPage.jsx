@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Loader, MapPin, Phone, Building2, BadgeCheck, Star, Navigation, Clock } from 'lucide-react';
 import api, { authApi } from '../services/api';
 import RoomTypeCard from '../components/RoomTypeCard';
 import DateGuestPicker from '../components/DateGuestPicker';
 import SaveHotelButton from '../components/SaveHotelButton';
 import ReviewList from '../components/ReviewList';
+import { useAuth } from '../context/AuthContext';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 import { addRecentlyViewed } from '../utils/recentlyViewed';
 import { track } from '../utils/analytics';
@@ -43,6 +44,8 @@ export default function HotelDetailPage() {
   const { hotelId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { guest, loading: authLoading } = useAuth();
 
   const [hotel, setHotel] = useState(null);
   const [roomTypes, setRoomTypes] = useState([]);
@@ -98,6 +101,19 @@ export default function HotelDetailPage() {
     });
     navigate(`/hotels/${hotelId}/book?${params.toString()}`);
   };
+
+  // A hotel's full details (rooms, live pricing, photos, reviews) require
+  // a signed-in guest - search/browse stays public so a guest can decide
+  // it's worth creating an account, but clicking into a specific hotel
+  // sends a signed-out browser to login first, back here afterward.
+  // api/proxy.js enforces the same rule server-side, so this is the clean
+  // redirect, not the only thing stopping the data from loading.
+  if (authLoading) {
+    return <div className="max-w-6xl mx-auto px-4 py-16 flex justify-center text-gray-400"><Loader className="w-6 h-6 animate-spin" /></div>;
+  }
+  if (!guest) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">

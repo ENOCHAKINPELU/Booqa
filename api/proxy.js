@@ -42,6 +42,21 @@ export default async function handler(req, res) {
   const params = new URLSearchParams(req.query);
   params.delete('path');
 
+  // A specific hotel's full details (profile, room types, live pricing,
+  // media, reviews) require a signed-in guest - only the bare list
+  // (/hotels, with or without a city/state filter) stays public, so a
+  // guest can still browse and decide it's worth creating an account.
+  // Enforced here, not just as a frontend redirect: a signed-out browser
+  // hitting these paths directly never even reaches HotelOps, so there's
+  // no way to read the data out of the network tab by skipping the UI.
+  if (method === 'GET' && /^\/booking-api\/v1\/hotels\/[^/]+/.test(targetPath)) {
+    const session = getSessionFromRequest(req);
+    if (!session?.sub) {
+      res.status(401).json({ success: false, data: null, error: { message: 'Sign in to view hotel details', code: 'UNAUTHENTICATED' } });
+      return;
+    }
+  }
+
   // Guest-identity binding happens HERE, not in the browser, for the same
   // reason as the POST /reservations case below: the booking-api trusts
   // the channel (this proxy, via HMAC), not individual guests, and has no

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Loader, UserCheck } from 'lucide-react';
 import api, { newIdempotencyKey } from '../services/api';
 import { formatDisplay, formatMoney, nights } from '../utils/dates';
@@ -10,7 +10,8 @@ export default function BookingPage() {
   const { hotelId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { guest } = useAuth();
+  const location = useLocation();
+  const { guest, loading: authLoading } = useAuth();
 
   const roomTypeId = searchParams.get('room_type_id');
   const checkIn = searchParams.get('check_in');
@@ -95,6 +96,22 @@ export default function BookingPage() {
       setSubmitting(false);
     }
   };
+
+  // Same gate as HotelDetailPage - this is one step further into the same
+  // funnel, reachable only by clicking "Book now" from a detail page a
+  // signed-out guest could never have loaded in the first place. Guarded
+  // here too rather than assumed, since a direct/bookmarked URL would
+  // otherwise reach this page even after that redirect.
+  if (authLoading) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 flex justify-center text-gray-400">
+        <Loader className="w-6 h-6 animate-spin" />
+      </div>
+    );
+  }
+  if (!guest) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
 
   if (loading) {
     return (
