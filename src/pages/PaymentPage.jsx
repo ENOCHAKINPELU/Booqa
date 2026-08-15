@@ -39,6 +39,14 @@ export default function PaymentPage() {
       .finally(() => setLoading(false));
   }, [id, hotelId]);
 
+  // The room price stays exactly what the hotel set (reservation.total_amount)
+  // - the service fee is a separate, itemized add-on (create_reservation's
+  // guest_fee_amount, 034), never silently folded into "the price" without
+  // explanation. Defaults to 0 for anything that predates this, so the
+  // breakdown just collapses to "Total due" with nothing extra shown.
+  const guestFee = Number(reservation?.guest_fee_amount || 0);
+  const amountToCharge = Number(reservation?.total_amount || 0) + guestFee;
+
   const confirmPayment = async (tx_ref) => {
     try {
       await api.post(
@@ -56,7 +64,7 @@ export default function PaymentPage() {
   const handlePay = async () => {
     setPaying(true);
     setError('');
-    track('payment_started', { reservation_id: id, hotel_id: hotelId, amount: reservation.total_amount });
+    track('payment_started', { reservation_id: id, hotel_id: hotelId, amount: amountToCharge });
     await loadFlutterwave();
     if (!window.FlutterwaveCheckout) {
       setError('Payment system failed to load. Check your connection and try again.');
@@ -70,7 +78,7 @@ export default function PaymentPage() {
     window.FlutterwaveCheckout({
       public_key: import.meta.env.VITE_FLW_PUBLIC_KEY,
       tx_ref: ref,
-      amount: reservation.total_amount,
+      amount: amountToCharge,
       currency: reservation.currency || 'NGN',
       payment_options: 'card',
       customer: { email: reservation.guest_email, name: reservation.guest_name, phone_number: reservation.guest_phone },
@@ -117,9 +125,21 @@ export default function PaymentPage() {
         <p className="text-sm text-gray-600">
           {formatDisplay(reservation.check_in_date)} → {formatDisplay(reservation.check_out_date)}
         </p>
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-          <span className="text-sm text-gray-500">Total due</span>
-          <span className="text-lg font-bold text-gray-900">{formatMoney(reservation.total_amount, reservation.currency)}</span>
+        <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Room price</span>
+            <span>{formatMoney(reservation.total_amount, reservation.currency)}</span>
+          </div>
+          {guestFee > 0 && (
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Service fee</span>
+              <span>{formatMoney(guestFee, reservation.currency)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between pt-1.5 border-t border-gray-100">
+            <span className="text-sm text-gray-500">Total due</span>
+            <span className="text-lg font-bold text-gray-900">{formatMoney(amountToCharge, reservation.currency)}</span>
+          </div>
         </div>
       </div>
 
@@ -140,7 +160,7 @@ export default function PaymentPage() {
         <>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
           <button onClick={handlePay} disabled={paying} className="btn-primary w-full flex items-center justify-center gap-2">
-            {paying ? <><Loader className="w-4 h-4 animate-spin" /> Opening payment…</> : <><Zap className="w-4 h-4" /> Pay {formatMoney(reservation.total_amount, reservation.currency)}</>}
+            {paying ? <><Loader className="w-4 h-4 animate-spin" /> Opening payment…</> : <><Zap className="w-4 h-4" /> Pay {formatMoney(amountToCharge, reservation.currency)}</>}
           </button>
           <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-3">
             <ShieldCheck className="w-3.5 h-3.5 text-green-500" /> Secured by Flutterwave

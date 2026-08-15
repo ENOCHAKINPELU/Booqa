@@ -136,9 +136,14 @@ export default function BookingPage() {
             {formatDisplay(checkIn)} → {formatDisplay(checkOut)} · {nights(checkIn, checkOut)} night(s) · {adults} adult{adults === 1 ? '' : 's'}{children ? `, ${children} children` : ''}
           </p>
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Total</span>
+            <span className="text-sm text-gray-500">Room price</span>
             <span className="text-lg font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</span>
           </div>
+          {/* The exact service fee depends on this hotel's current commission
+              rate, only known once the reservation exists - shown itemized
+              on the next page, before anything is charged, not silently
+              added without warning. */}
+          <p className="text-xs text-gray-400 mt-1">Plus a service fee, shown on the payment page before you pay</p>
         </div>
       )}
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle2, Loader, ClipboardList, Download, MapPin } from 'lucide-react';
 import api from '../services/api';
-import { formatDisplay, formatMoney, nights } from '../utils/dates';
+import { formatDisplay, formatMoney, nights, amountPaid } from '../utils/dates';
 import { track } from '../utils/analytics';
 
 export default function ConfirmationPage() {
@@ -87,7 +87,7 @@ export default function ConfirmationPage() {
           </div>
           <div className="flex justify-between text-sm py-1 pt-2 mt-1 border-t border-gray-100">
             <span className="text-gray-500">{isPaid ? 'Total paid' : 'Total due'}</span>
-            <span className="font-bold text-gray-900">{formatMoney(reservation.total_amount, reservation.currency)}</span>
+            <span className="font-bold text-gray-900">{formatMoney(amountPaid(reservation), reservation.currency)}</span>
           </div>
           <div className="flex justify-between text-sm py-1">
             <span className="text-gray-500">Status</span>

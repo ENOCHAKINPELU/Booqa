@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, MapPin, ArrowRight } from 'lucide-react';
-import { formatDisplay, formatMoney } from '../utils/dates';
+import { formatDisplay, formatMoney, amountPaid } from '../utils/dates';
 
 const STATUS_STYLES = {
   pending_payment: 'bg-amber-50 text-amber-700',
@@ -52,7 +52,7 @@ export default function BookingHistoryCard({ reservation: r }) {
       <div className="text-right flex-shrink-0 flex items-center gap-3">
         <div>
           <p className="font-mono text-xs text-gray-400">{r.booking_reference}</p>
-          <p className="font-bold text-gray-900">{formatMoney(r.total_amount, r.currency)}</p>
+          <p className="font-bold text-gray-900">{formatMoney(amountPaid(r), r.currency)}</p>
         </div>
         <ArrowRight className="w-4 h-4 text-gray-300" />
       </div>
