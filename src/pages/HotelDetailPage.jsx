@@ -90,8 +90,8 @@ export default function HotelDetailPage() {
     setSearchParams(next);
   };
 
-  const handleBook = (roomType) => {
-    track('room_selected', { hotel_id: hotelId, room_type_id: roomType.room_type_id, room_type_name: roomType.name });
+  const handleBook = (roomType, roomId) => {
+    track('room_selected', { hotel_id: hotelId, room_type_id: roomType.room_type_id, room_type_name: roomType.name, room_id: roomId || undefined });
     const params = new URLSearchParams({
       room_type_id: roomType.room_type_id,
       check_in: checkIn,
@@ -99,6 +99,7 @@ export default function HotelDetailPage() {
       adults: String(adults),
       children: String(children),
     });
+    if (roomId) params.set('room_id', roomId);
     navigate(`/hotels/${hotelId}/book?${params.toString()}`);
   };
 

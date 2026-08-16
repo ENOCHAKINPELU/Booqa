@@ -14,6 +14,7 @@ export default function BookingPage() {
   const { guest, loading: authLoading } = useAuth();
 
   const roomTypeId = searchParams.get('room_type_id');
+  const roomId = searchParams.get('room_id'); // specific room pick (035) - null means no preference, unchanged pooled behavior
   const checkIn = searchParams.get('check_in');
   const checkOut = searchParams.get('check_out');
   const adults = Number(searchParams.get('adults') || 1);
@@ -80,6 +81,7 @@ export default function BookingPage() {
           check_in: checkIn,
           check_out: checkOut,
           adults, children,
+          room_id: roomId || undefined,
           guest_name: form.guest_name,
           guest_email: form.guest_email,
           guest_phone: form.guest_phone || undefined,
@@ -135,6 +137,12 @@ export default function BookingPage() {
           <p className="text-sm text-gray-500 mt-1">
             {formatDisplay(checkIn)} → {formatDisplay(checkOut)} · {nights(checkIn, checkOut)} night(s) · {adults} adult{adults === 1 ? '' : 's'}{children ? `, ${children} children` : ''}
           </p>
+          {roomId && (() => {
+            const pickedRoom = roomType.available_rooms?.find((r) => r.id === roomId);
+            return pickedRoom ? (
+              <p className="text-sm text-primary-700 font-medium mt-1">Room {pickedRoom.room_number} selected</p>
+            ) : null;
+          })()}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
             <span className="text-sm text-gray-500">Room price</span>
             <span className="text-lg font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</span>
@@ -149,11 +157,6 @@ export default function BookingPage() {
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
-      {!guest && roomType && (
-        <p className="text-sm text-gray-500 mb-4">
-          <Link to={`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`} className="text-primary-700 font-medium hover:text-primary-800">Sign in</Link> for faster checkout next time, or continue as a guest below.
-        </p>
-      )}
       {guest && roomType && (
         <p className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
           <UserCheck className="w-4 h-4 text-green-600" /> Booking as {guest.full_name} ({guest.email})

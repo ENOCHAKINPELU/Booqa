@@ -6,8 +6,14 @@ import { track } from '../utils/analytics';
 
 export default function RoomTypeCard({ roomType, onBook }) {
   const [expanded, setExpanded] = useState(false);
+  // '' means "no preference" - a pooled booking, exactly today's behavior.
+  // A specific pick is honored at check-in (035); which rooms show up
+  // here already excludes any room someone else specifically picked for
+  // an overlapping stay (room-types.service.js's getAvailability).
+  const [selectedRoomId, setSelectedRoomId] = useState('');
   const photo = roomType.media?.find(m => m.media_type === 'photo');
   const hasMoreMedia = (roomType.media?.length || 0) > 0;
+  const pickableRooms = roomType.available_rooms || [];
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -64,12 +70,28 @@ export default function RoomTypeCard({ roomType, onBook }) {
                 Only {roomType.available_count} left for these dates
               </p>
             )}
+            {pickableRooms.length > 0 && (
+              <label className="block mt-2.5">
+                <span className="block text-xs text-gray-500 mb-1">Room (optional)</span>
+                <select
+                  value={selectedRoomId}
+                  onChange={(e) => setSelectedRoomId(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="input py-1.5 text-sm w-full sm:w-48"
+                >
+                  <option value="">No preference - any available room</option>
+                  {pickableRooms.map((r) => (
+                    <option key={r.id} value={r.id}>Room {r.room_number}</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs text-gray-500">{roomType.nights} night{roomType.nights === 1 ? '' : 's'} total</p>
             <p className="text-xl font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</p>
             <p className="text-xs text-gray-400 mb-3">{formatMoney(roomType.base_rate, roomType.currency)} / night</p>
-            <button onClick={() => onBook(roomType)} className="btn-primary w-full sm:w-auto">
+            <button onClick={() => onBook(roomType, selectedRoomId || null)} className="btn-primary w-full sm:w-auto">
               Book now
             </button>
           </div>
