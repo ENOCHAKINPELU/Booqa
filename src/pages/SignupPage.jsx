@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { signupSubtitle } from '../utils/redirectContext';
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -30,7 +31,7 @@ export default function SignupPage() {
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
       <h1 className="text-xl font-bold text-gray-900 mb-1">Create your account</h1>
-      <p className="text-sm text-gray-500 mb-6">Faster checkout and a place to manage every booking.</p>
+      <p className="text-sm text-gray-500 mb-6">{signupSubtitle(redirectTo)}</p>
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 

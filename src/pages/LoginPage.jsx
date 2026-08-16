@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { loginSubtitle } from '../utils/redirectContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -30,7 +31,7 @@ export default function LoginPage() {
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
       <h1 className="text-xl font-bold text-gray-900 mb-1">Sign in</h1>
-      <p className="text-sm text-gray-500 mb-6">Welcome back.</p>
+      <p className="text-sm text-gray-500 mb-6">{loginSubtitle(redirectTo)}</p>
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
