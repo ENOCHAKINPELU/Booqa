@@ -2,6 +2,7 @@ import React from 'react';
 import { ShieldCheck, Lock, MessageCircle } from 'lucide-react';
 import DateGuestPicker from './DateGuestPicker';
 import { formatMoney, formatDisplay } from '../utils/dates';
+import { roomPricing } from '../utils/pricing';
 
 /**
  * The hotel page's booking box. On large screens it sits in the right
@@ -18,6 +19,7 @@ export function cheapestRoom(roomTypes) {
 export default function BookingPanel({ checkIn, checkOut, adults, children, onChange, roomTypes, loading, onChooseRoom }) {
   const cheapest = cheapestRoom(roomTypes);
   const nights = cheapest?.nights;
+  const price = cheapest && roomPricing(cheapest);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -28,11 +30,12 @@ export default function BookingPanel({ checkIn, checkOut, adults, children, onCh
           <>
             <p className="text-xs text-gray-500">Rooms from</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatMoney(cheapest.base_rate, cheapest.currency)}
+              {formatMoney(price.perNight, cheapest.currency)}
               <span className="text-sm font-normal text-gray-500"> / night</span>
             </p>
             <p className="text-xs text-gray-500 mt-0.5">
-              {formatMoney(cheapest.total_amount, cheapest.currency)} for {nights} night{nights === 1 ? '' : 's'}
+              {formatMoney(price.total, cheapest.currency)} for {nights} night{nights === 1 ? '' : 's'}
+              {price.includesFee ? ' · includes all fees' : ' + service fee'}
             </p>
           </>
         ) : (
@@ -64,6 +67,7 @@ export default function BookingPanel({ checkIn, checkOut, adults, children, onCh
 export function MobileBookingBar({ roomTypes, loading, hidden, onChooseRoom }) {
   const cheapest = cheapestRoom(roomTypes);
   if (loading || !cheapest) return null;
+  const price = roomPricing(cheapest);
   return (
     <div
       className={`lg:hidden fixed inset-x-0 bottom-0 z-30 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]
@@ -72,9 +76,9 @@ export function MobileBookingBar({ roomTypes, loading, hidden, onChooseRoom }) {
       aria-hidden={hidden}
     >
       <div className="min-w-0">
-        <p className="text-[11px] text-gray-500 leading-tight">From</p>
+        <p className="text-[11px] text-gray-500 leading-tight">From{price.includesFee ? ', all fees included' : ''}</p>
         <p className="font-bold text-gray-900 leading-tight">
-          {formatMoney(cheapest.base_rate, cheapest.currency)}<span className="text-xs font-normal text-gray-500"> / night</span>
+          {formatMoney(price.perNight, cheapest.currency)}<span className="text-xs font-normal text-gray-500"> / night</span>
         </p>
       </div>
       <button type="button" onClick={onChooseRoom} tabIndex={hidden ? -1 : 0} className="btn-primary px-5 py-2.5 flex-shrink-0">

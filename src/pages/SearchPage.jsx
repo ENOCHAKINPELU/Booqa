@@ -7,6 +7,7 @@ import DateGuestPicker from '../components/DateGuestPicker';
 import FilterPanel from '../components/FilterPanel';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 import { track } from '../utils/analytics';
+import { hotelFromPrice } from '../utils/pricing';
 
 // Results only - the hero/search entry point lives on LandingPage ("/").
 // This page just refines and displays results for whatever search brought
@@ -45,7 +46,9 @@ export default function SearchPage() {
     setError('');
     api.get('/hotels')
       .then(r => {
-        const results = r.data.data || [];
+        // display_price = the all-in per-night price each card shows, so
+        // the price filter and sort work on the same number the guest sees.
+        const results = (r.data.data || []).map((h) => ({ ...h, display_price: hotelFromPrice(h)?.perNight ?? null }));
         setHotels(results);
         track('search_completed', { result_count: results.length, check_in: checkIn, check_out: checkOut });
       })
@@ -80,7 +83,7 @@ export default function SearchPage() {
     [hotels]
   );
   const maxPrice = useMemo(
-    () => hotels.reduce((max, h) => (h.from_price != null ? Math.max(max, h.from_price) : max), 0),
+    () => hotels.reduce((max, h) => (h.display_price != null ? Math.max(max, h.display_price) : max), 0),
     [hotels]
   );
   const effectivePriceCap = priceRange ?? maxPrice;
@@ -91,12 +94,12 @@ export default function SearchPage() {
 
   const visibleHotels = useMemo(() => {
     let list = hotels.filter((h) => {
-      if (h.from_price != null && effectivePriceCap && h.from_price > effectivePriceCap) return false;
+      if (h.display_price != null && effectivePriceCap && h.display_price > effectivePriceCap) return false;
       if (selectedAmenities.length && !selectedAmenities.every((a) => (h.amenities || []).includes(a))) return false;
       return true;
     });
-    if (sort === 'price_asc') list = [...list].sort((a, b) => (a.from_price ?? Infinity) - (b.from_price ?? Infinity));
-    if (sort === 'price_desc') list = [...list].sort((a, b) => (b.from_price ?? -Infinity) - (a.from_price ?? -Infinity));
+    if (sort === 'price_asc') list = [...list].sort((a, b) => (a.display_price ?? Infinity) - (b.display_price ?? Infinity));
+    if (sort === 'price_desc') list = [...list].sort((a, b) => (b.display_price ?? -Infinity) - (a.display_price ?? -Infinity));
     return list;
   }, [hotels, effectivePriceCap, selectedAmenities, sort]);
 

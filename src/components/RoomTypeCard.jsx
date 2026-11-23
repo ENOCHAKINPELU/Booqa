@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Users, ImageOff, ChevronDown, ChevronUp, BedDouble, Maximize2, ShieldCheck, Coffee } from 'lucide-react';
 import { formatMoney } from '../utils/dates';
 import { includesBreakfast, cancellationLabel, isFreeCancellation } from '../utils/rooms';
+import { roomPricing } from '../utils/pricing';
 import MediaGallery from './MediaGallery';
 import { track } from '../utils/analytics';
 
 export default function RoomTypeCard({ roomType, onBook, highlighted = false }) {
   const cancel = cancellationLabel(roomType);
+  const price = roomPricing(roomType);
   const [expanded, setExpanded] = useState(false);
   // '' means "no preference" - a pooled booking, exactly today's behavior.
   // A specific pick is honored at check-in (035); which rooms show up
@@ -100,8 +102,13 @@ export default function RoomTypeCard({ roomType, onBook, highlighted = false }) 
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs text-gray-500">{roomType.nights} night{roomType.nights === 1 ? '' : 's'} total</p>
-            <p className="text-xl font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</p>
-            <p className="text-xs text-gray-400 mb-3">{formatMoney(roomType.base_rate, roomType.currency)} / night</p>
+            <p className="text-xl font-bold text-gray-900">{formatMoney(price.total, roomType.currency)}</p>
+            <p className="text-xs text-gray-400">{formatMoney(price.perNight, roomType.currency)} / night</p>
+            <p className="text-[11px] text-gray-400 mb-3">
+              {price.includesFee
+                ? `Room ${formatMoney(price.room, roomType.currency)} + fee ${formatMoney(price.fee, roomType.currency)}`
+                : '+ service fee'}
+            </p>
             <button onClick={() => onBook(roomType, selectedRoomId || null)} className="btn-primary w-full sm:w-auto">
               Book now
             </button>

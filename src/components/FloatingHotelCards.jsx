@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Building2, MapPin, ArrowRight, Loader } from 'lucide-react';
 import api from '../services/api';
 import { formatMoney } from '../utils/dates';
+import { hotelFromPrice } from '../utils/pricing';
 
 // Right-side hero showpiece. Every hotel, photo and price shown here is
 // real - sourced from the same live GET /hotels + GET /hotels/:id/room-types
@@ -44,7 +45,11 @@ function rankStyle(rank) {
 function FloatingCard({ hotel, enrichment, rank, floatDelay, style }) {
   const loading = enrichment === undefined;
   const photo = enrichment?.photo;
-  const price = enrichment?.price;
+  // All-in per night (room + service fee) when GET /hotels gave this
+  // hotel's fee - same figure the search cards and hotel page show.
+  const price = enrichment?.price != null
+    ? hotelFromPrice({ from_price: enrichment.price, guest_fee_percent: hotel.guest_fee_percent }).perNight
+    : null;
 
   return (
     <Link

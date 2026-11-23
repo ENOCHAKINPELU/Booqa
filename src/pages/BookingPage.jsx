@@ -5,6 +5,7 @@ import api, { newIdempotencyKey } from '../services/api';
 import { formatDisplay, formatMoney, nights } from '../utils/dates';
 import { useAuth } from '../context/AuthContext';
 import { track } from '../utils/analytics';
+import { roomPricing } from '../utils/pricing';
 
 export default function BookingPage() {
   const { hotelId } = useParams();
@@ -143,15 +144,35 @@ export default function BookingPage() {
               <p className="text-sm text-primary-700 font-medium mt-1">Room {pickedRoom.room_number} selected</p>
             ) : null;
           })()}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Room price</span>
-            <span className="text-lg font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</span>
-          </div>
-          {/* The exact service fee depends on this hotel's current commission
-              rate, only known once the reservation exists - shown itemized
-              on the next page, before anything is charged, not silently
-              added without warning. */}
-          <p className="text-xs text-gray-400 mt-1">Plus a service fee, shown on the payment page before you pay</p>
+          {(() => {
+            // The fee comes from HotelOps with the same formula the
+            // reservation charges, so this total is what the payment page
+            // will ask for. Older backends without it fall back to the
+            // "fee shown at payment" note rather than a lower total.
+            const price = roomPricing(roomType);
+            return price.includesFee ? (
+              <div className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Room price</span><span>{formatMoney(price.room, roomType.currency)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Booqa service fee</span><span>{formatMoney(price.fee, roomType.currency)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 mt-1 border-t border-gray-100">
+                  <span className="font-medium text-gray-900">Total</span>
+                  <span className="text-lg font-bold text-gray-900">{formatMoney(price.total, roomType.currency)}</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <span className="text-sm text-gray-500">Room price</span>
+                  <span className="text-lg font-bold text-gray-900">{formatMoney(roomType.total_amount, roomType.currency)}</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Plus a service fee, shown on the payment page before you pay</p>
+              </>
+            );
+          })()}
         </div>
       )}
 

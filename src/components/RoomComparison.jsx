@@ -2,6 +2,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { formatMoney } from '../utils/dates';
 import { sleepsLabel, includesBreakfast, cancellationLabel, isFreeCancellation } from '../utils/rooms';
+import { roomPricing } from '../utils/pricing';
 
 const NotListed = () => <span className="text-gray-300">Not listed</span>;
 
@@ -36,6 +37,7 @@ export default function RoomComparison({ roomTypes, onSelect }) {
           <tbody className="divide-y divide-gray-100">
             {roomTypes.map((rt) => {
               const cancel = cancellationLabel(rt);
+              const price = roomPricing(rt);
               return (
                 <tr key={rt.room_type_id} className="hover:bg-gray-50 align-top">
                   <th scope="row" className="px-4 py-3 text-left font-semibold text-gray-900">
@@ -61,8 +63,8 @@ export default function RoomComparison({ roomTypes, onSelect }) {
                     {cancel || <NotListed />}
                   </td>
                   <td className="px-3 py-3 text-right whitespace-nowrap">
-                    <span className="block font-bold text-gray-900">{formatMoney(rt.total_amount, rt.currency)}</span>
-                    <span className="block text-xs text-gray-400">{formatMoney(rt.base_rate, rt.currency)} / night</span>
+                    <span className="block font-bold text-gray-900">{formatMoney(price.total, rt.currency)}</span>
+                    <span className="block text-xs text-gray-400">{formatMoney(price.perNight, rt.currency)} / night</span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button type="button" onClick={() => onSelect(rt)} className="btn-primary text-sm px-3 py-1.5 whitespace-nowrap">
@@ -75,7 +77,11 @@ export default function RoomComparison({ roomTypes, onSelect }) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-400 mt-1.5">Room price before Booqa's service fee, which is shown at payment.</p>
+      <p className="text-xs text-gray-400 mt-1.5">
+        {roomPricing(roomTypes[0]).includesFee
+          ? 'Prices include all fees. What you see is what you pay.'
+          : "Room price before Booqa's service fee, which is shown before you pay."}
+      </p>
     </section>
   );
 }

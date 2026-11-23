@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, MapPin, BadgeCheck, Star } from 'lucide-react';
-import { formatMoney } from '../utils/dates';
+import { formatMoney, nights as countNights } from '../utils/dates';
+import { hotelFromPrice, hotelStayTotal } from '../utils/pricing';
 import SaveHotelButton from './SaveHotelButton';
 
 // verified/from_price/amenities all come straight from GET /hotels
@@ -24,6 +25,10 @@ export default function HotelCard({ hotel, searchParams, initialSaved = false })
   // actively wrong, not just a missed optimization, so it passes
   // initialSaved={true} instead of leaving this to guess.
   const [saved, setSaved] = useState(initialSaved);
+  const price = hotelFromPrice(hotel);
+  const checkIn = searchParams?.get?.('check_in');
+  const checkOut = searchParams?.get?.('check_out');
+  const stayNights = checkIn && checkOut ? countNights(checkIn, checkOut) : 0;
   return (
     <Link
       to={`/hotels/${hotel.id}?${searchParams.toString()}`}
@@ -65,12 +70,19 @@ export default function HotelCard({ hotel, searchParams, initialSaved = false })
         {hotel.amenities?.length > 0 && (
           <p className="text-xs text-gray-400 mt-2 line-clamp-1">{hotel.amenities.slice(0, 3).join(' · ')}</p>
         )}
-        {hotel.from_price != null && (
-          <p className="text-sm mt-3 pt-3 border-t border-gray-100">
-            <span className="text-gray-500">From </span>
-            <span className="font-bold text-gray-900">{formatMoney(hotel.from_price, hotel.currency)}</span>
-            <span className="text-gray-400"> / night</span>
-          </p>
+        {price && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-sm">
+              <span className="text-gray-500">From </span>
+              <span className="font-bold text-gray-900">{formatMoney(price.perNight, hotel.currency)}</span>
+              <span className="text-gray-400"> / night</span>
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {price.includesFee
+                ? <>{stayNights > 1 && <>{formatMoney(hotelStayTotal(hotel, stayNights), hotel.currency)} for {stayNights} nights · </>}Includes all fees</>
+                : '+ service fee'}
+            </p>
+          </div>
         )}
       </div>
     </Link>
