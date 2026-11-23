@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, BadgeCheck, Star } from 'lucide-react';
+import { MapPin, BadgeCheck, Star } from 'lucide-react';
+import PhotoCarousel from './PhotoCarousel';
+import { facilityIcon, FACILITY_LABELS, byFacilityPriority } from '../utils/facilities';
 import { formatMoney, nights as countNights } from '../utils/dates';
 import { hotelFromPrice, hotelStayTotal } from '../utils/pricing';
 import SaveHotelButton from './SaveHotelButton';
@@ -32,16 +34,14 @@ export default function HotelCard({ hotel, searchParams, initialSaved = false })
   return (
     <Link
       to={`/hotels/${hotel.id}?${searchParams.toString()}`}
-      className="block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-primary-200 transition-all"
+      className="block h-full bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-primary-200 transition-all"
     >
-      <div className="h-36 bg-primary-50 flex items-center justify-center relative overflow-hidden">
-        {hotel.cover_image_url ? (
-          <img src={hotel.cover_image_url} alt={hotel.name} className="w-full h-full object-cover" />
-        ) : hotel.logo_url ? (
-          <img src={hotel.logo_url} alt={hotel.name} className="max-h-full max-w-full object-contain" />
-        ) : (
-          <Building2 className="w-10 h-10 text-primary-300" />
-        )}
+      <div className="relative">
+        <PhotoCarousel
+          photos={hotel.photos?.length ? hotel.photos : [hotel.cover_image_url].filter(Boolean)}
+          alt={hotel.name}
+          className="h-44"
+        />
         {hotel.verified && (
           <span className="absolute top-2 left-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-white bg-primary-700/90 rounded-full px-2 py-1">
             <BadgeCheck className="w-3 h-3" /> Verified
@@ -67,7 +67,18 @@ export default function HotelCard({ hotel, searchParams, initialSaved = false })
             <MapPin className="w-3.5 h-3.5" /> {location}
           </p>
         )}
-        {hotel.amenities?.length > 0 && (
+        {hotel.facilities?.length > 0 ? (
+          <ul className="flex flex-wrap gap-1 mt-2" aria-label="Facilities">
+            {[...hotel.facilities].sort(byFacilityPriority).slice(0, 3).map((f) => {
+              const Icon = facilityIcon(f);
+              return (
+                <li key={f.key} className="flex items-center gap-1 text-[11px] font-medium text-primary-800 bg-primary-50 rounded-full px-2 py-0.5">
+                  <Icon className="w-3 h-3" /> {FACILITY_LABELS[f.key] || f.name}
+                </li>
+              );
+            })}
+          </ul>
+        ) : hotel.amenities?.length > 0 && (
           <p className="text-xs text-gray-400 mt-2 line-clamp-1">{hotel.amenities.slice(0, 3).join(' · ')}</p>
         )}
         {price && (

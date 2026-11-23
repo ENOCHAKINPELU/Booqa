@@ -1,18 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Waves, Utensils, Wine, Dumbbell, Presentation, Car, Sparkles, ConciergeBell, Building2, Trees, Sunset,
-  Baby, Wifi, Zap, ShieldCheck, Plane, Shirt, BellRing, CircleDot, Move3d, X, Camera,
-} from 'lucide-react';
+import { Move3d, X, Camera } from 'lucide-react';
 import MediaGallery from './MediaGallery';
 import { track } from '../utils/analytics';
-
-// Facility icons, keyed by the HotelOps facility catalog (facilities.service.js)
-const ICONS = {
-  pool: Waves, restaurant: Utensils, bar: Wine, gym: Dumbbell, event_hall: Presentation, parking: Car,
-  spa: Sparkles, lobby: ConciergeBell, exterior: Building2, garden: Trees, rooftop: Sunset, kids_area: Baby,
-  wifi: Wifi, power: Zap, security: ShieldCheck, shuttle: Plane, laundry: Shirt, room_service: BellRing,
-};
+import { facilityIcon } from '../utils/facilities';
 
 // Grouped the way Nigerian guests actually decide: power and connectivity
 // first (the question everyone asks), then safety and getting there.
@@ -52,7 +43,7 @@ export default function HotelFacilities({ facilities = [] }) {
 
   if (!facilities.length) return null;
   const withMedia = facilities.filter((f) => (f.media || []).length > 0);
-  const iconOf = (f) => ICONS[f.icon_key] || ICONS[f.key] || CircleDot;
+  const iconOf = facilityIcon;
 
   return (
     <section className="mt-10 pt-6 border-t border-gray-100">
