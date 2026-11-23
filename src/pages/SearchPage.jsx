@@ -9,13 +9,16 @@ import { tomorrowISO, defaultCheckOut, formatDisplay, nights as countNights } fr
 import { track } from '../utils/analytics';
 import { hotelFromPrice } from '../utils/pricing';
 import { FACILITY_LABELS, byFacilityPriority } from '../utils/facilities';
+import { destinationsFrom, inPlace } from '../utils/destinations';
+import WherePicker from '../components/WherePicker';
 
 // Results only - the hero/search entry point lives on LandingPage ("/").
 // Every filter and the sort live in the URL (facility=, area=, amenity=,
 // max_price=, sort=) so a search can be bookmarked or shared and the home
 // page's "Stay by what matters" shortcuts can link straight into one.
-// Port Harcourt only for now (a market-scope decision, not a missing
-// feature); GET /hotels already only returns what's opted in.
+// Booqa covers Nigeria: city= narrows to one city (or state); without it
+// the page shows every live hotel in the country. Which cities exist comes
+// from the live hotels themselves (utils/destinations.js).
 
 const SORTS = [
   { key: 'recommended', label: 'Recommended' },
@@ -99,30 +102,37 @@ export default function SearchPage() {
   const updateDates = (d) => patchParams({ check_in: d.checkIn, check_out: d.checkOut, adults: d.adults, children: d.children });
   const toggleIn = (key, list, value) => patchParams({ [key]: list.includes(value) ? list.filter((x) => x !== value) : [...list, value] });
 
+  // The chosen city (city=) narrows everything below - results, price
+  // range and filter counts. No city = all of Nigeria.
+  const city = searchParams.get('city') || '';
+  const destinations = useMemo(() => destinationsFrom(hotels), [hotels]);
+  const placeHotels = useMemo(() => hotels.filter((h) => inPlace(h, city)), [hotels, city]);
+  const placeName = city || 'Nigeria';
+
   const maxPrice = useMemo(
-    () => hotels.reduce((max, h) => (h.display_price != null ? Math.max(max, h.display_price) : max), 0),
-    [hotels]
+    () => placeHotels.reduce((max, h) => (h.display_price != null ? Math.max(max, h.display_price) : max), 0),
+    [placeHotels]
   );
   const priceCap = maxPriceParam && maxPriceParam < maxPrice ? maxPriceParam : maxPrice;
 
   const facilityOptions = useMemo(() => {
-    const counts = countBy(hotels, (h) => (h.facilities || []).map((f) => f.key));
+    const counts = countBy(placeHotels, (h) => (h.facilities || []).map((f) => f.key));
     return [...counts.entries()]
-      .map(([key, count]) => ({ key, count, label: FACILITY_LABELS[key] || hotels.flatMap((h) => h.facilities || []).find((f) => f.key === key)?.name || key }))
+      .map(([key, count]) => ({ key, count, label: FACILITY_LABELS[key] || placeHotels.flatMap((h) => h.facilities || []).find((f) => f.key === key)?.name || key }))
       .sort(byFacilityPriority)
       .slice(0, 8);
-  }, [hotels]);
+  }, [placeHotels]);
   const areaOptions = useMemo(
-    () => [...countBy(hotels, (h) => (h.area ? [h.area] : [])).entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
-    [hotels]
+    () => [...countBy(placeHotels, (h) => (h.area ? [h.area] : [])).entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
+    [placeHotels]
   );
   const amenityOptions = useMemo(
-    () => [...countBy(hotels, (h) => h.amenities || []).entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
-    [hotels]
+    () => [...countBy(placeHotels, (h) => h.amenities || []).entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count),
+    [placeHotels]
   );
 
   const visibleHotels = useMemo(() => {
-    let list = hotels.filter((h) => {
+    let list = placeHotels.filter((h) => {
       if (h.display_price != null && priceCap && h.display_price > priceCap) return false;
       if (selectedFacilities.length && !selectedFacilities.every((k) => (h.facilities || []).some((f) => f.key === k))) return false;
       if (selectedAreas.length && !selectedAreas.includes(h.area)) return false;
@@ -133,7 +143,7 @@ export default function SearchPage() {
     if (sort === 'price_desc') list = [...list].sort((a, b) => (b.display_price ?? -Infinity) - (a.display_price ?? -Infinity));
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hotels, priceCap, searchParams, sort]);
+  }, [placeHotels, priceCap, searchParams, sort]);
 
   const activeCount = selectedFacilities.length + selectedAreas.length + selectedAmenities.length + (priceCap < maxPrice ? 1 : 0);
   const clearFilters = () => patchParams({ facility: null, area: null, amenity: null, max_price: null });
@@ -168,9 +178,20 @@ export default function SearchPage() {
           <nav aria-label="Breadcrumb" className="text-xs text-primary-200 mb-3 flex items-center gap-1">
             <Link to="/" className="hover:text-white">Home</Link>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-white">Port Harcourt</span>
+            {city ? (
+              <>
+                <button type="button" onClick={() => patchParams({ city: null })} className="hover:text-white">Nigeria</button>
+                <ChevronRight className="w-3 h-3" />
+                <span className="text-white">{city}</span>
+              </>
+            ) : <span className="text-white">Nigeria</span>}
           </nav>
-          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg grid gap-3 lg:grid-cols-[260px_1fr] lg:items-end">
+            <WherePicker
+              value={city}
+              onChange={(v) => patchParams({ city: v || null, area: null })}
+              destinations={destinations}
+            />
             <DateGuestPicker checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} onChange={updateDates} />
           </div>
         </div>
@@ -180,7 +201,7 @@ export default function SearchPage() {
         <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900">
-              {loading ? 'Hotels in Port Harcourt' : `${visibleHotels.length} hotel${visibleHotels.length === 1 ? '' : 's'} in Port Harcourt`}
+              {loading ? `Hotels in ${placeName}` : `${visibleHotels.length} hotel${visibleHotels.length === 1 ? '' : 's'} in ${placeName}`}
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">
               {formatDisplay(checkIn)} to {formatDisplay(checkOut)} · {stayNights} night{stayNights === 1 ? '' : 's'} · {adults} adult{adults === 1 ? '' : 's'}{children ? `, ${children} children` : ''}
@@ -267,15 +288,25 @@ export default function SearchPage() {
               <div className="text-center py-16 text-gray-400">
                 <Building2 className="w-10 h-10 mx-auto mb-3" />
                 <p className="text-gray-600 font-medium">No hotels available for these dates.</p>
-                <p className="text-sm mt-1">Try different dates or explore other stays in Port Harcourt.</p>
+                <p className="text-sm mt-1">Try different dates.</p>
               </div>
             )}
 
             {!loading && !error && hotels.length > 0 && visibleHotels.length === 0 && (
               <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
                 <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                <p className="text-gray-700 font-medium">No hotels match these filters.</p>
-                <button onClick={clearFilters} className="btn-secondary mt-4">Clear filters</button>
+                {city && placeHotels.length === 0 ? (
+                  <>
+                    <p className="text-gray-700 font-medium">No hotels on Booqa in {city} yet.</p>
+                    <p className="text-sm text-gray-500 mt-1">We're adding more Nigerian cities as hotels join.</p>
+                    <button onClick={() => patchParams({ city: null })} className="btn-secondary mt-4">Search all of Nigeria</button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-700 font-medium">No hotels match these filters.</p>
+                    <button onClick={clearFilters} className="btn-secondary mt-4">Clear filters</button>
+                  </>
+                )}
               </div>
             )}
 

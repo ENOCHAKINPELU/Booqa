@@ -16,6 +16,8 @@ import { getRecentlyViewed } from '../utils/recentlyViewed';
 import { tomorrowISO, defaultCheckOut, formatMoney } from '../utils/dates';
 import { hotelFromPrice } from '../utils/pricing';
 import { facilityIcon, FACILITY_LABELS, FACILITY_PRIORITY } from '../utils/facilities';
+import WherePicker from '../components/WherePicker';
+import { destinationsFrom, listPlaces } from '../utils/destinations';
 import { HERO_IMAGES } from '../data/heroImages';
 import { track } from '../utils/analytics';
 import { buildHeroStats } from '../data/heroStats';
@@ -44,6 +46,7 @@ export default function LandingPage() {
   const [checkOut, setCheckOut] = useState(defaultCheckOut(tomorrowISO()));
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [where, setWhere] = useState(''); // '' = anywhere in Nigeria
 
   const [hotels, setHotels] = useState([]);
   const [loadingHotels, setLoadingHotels] = useState(true);
@@ -61,6 +64,10 @@ export default function LandingPage() {
   }, []);
 
   const featured = hotels.slice(0, 8);
+  // Cities that actually have live hotels - grows on its own as hotels in
+  // new cities go live. Port Harcourt is simply where Booqa starts.
+  const destinations = useMemo(() => destinationsFrom(hotels), [hotels]);
+  const liveIn = listPlaces(destinations.map((d) => d.name));
   // avgRating stays undefined until real reviews exist - buildHeroStats
   // renders an honest "New" state for it, not a fabricated number.
   const heroStats = useMemo(() => buildHeroStats({ hotelCount: loadingHotels ? null : hotels.length }), [hotels, loadingHotels]);
@@ -101,8 +108,8 @@ export default function LandingPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    track('search_started', { check_in: checkIn, check_out: checkOut, adults, children });
-    navigate(searchLink());
+    track('search_started', { check_in: checkIn, check_out: checkOut, adults, children, where: where || 'anywhere' });
+    navigate(searchLink(where ? { city: where } : {}));
   };
 
   return (
@@ -114,24 +121,18 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px] gap-10 items-center">
             <div className="animate-heroFadeIn">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-100 bg-white/10 rounded-full px-3 py-1 mb-5">
-                <MapPin className="w-3.5 h-3.5" /> Now live in Port Harcourt
+                <MapPin className="w-3.5 h-3.5" /> {liveIn ? `Live in ${liveIn}` : 'Starting in Port Harcourt'} · more Nigerian cities soon
               </span>
               <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 max-w-xl leading-[1.1] tracking-tight text-balance">
-                Book a hotel you can <span className="text-accent">trust</span>.
+                Book a hotel you can <span className="text-accent">trust</span>, anywhere in Nigeria.
               </h1>
               <p className="text-primary-100 text-sm sm:text-lg mb-7 max-w-lg leading-relaxed">
-                Verified hotels in Port Harcourt with real photos, live availability and prices that already include every fee.
+                Verified hotels with real photos, live availability and prices that already include every fee.
               </p>
 
               <form onSubmit={handleSearch}
                 className="bg-white rounded-2xl p-4 sm:p-5 shadow-2xl shadow-black/30 max-w-2xl space-y-4">
-                <div className="flex items-center gap-2.5 rounded-xl border border-gray-200 px-3 py-2.5">
-                  <MapPin className="w-5 h-5 text-primary-700 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Where</p>
-                    <p className="text-sm font-semibold text-gray-900">Port Harcourt, Rivers</p>
-                  </div>
-                </div>
+                <WherePicker value={where} onChange={setWhere} destinations={destinations} />
                 <DateGuestPicker
                   checkIn={checkIn} checkOut={checkOut} adults={adults} children={children}
                   onChange={(n) => { setCheckIn(n.checkIn); setCheckOut(n.checkOut); setAdults(n.adults); setChildren(n.children); }}
@@ -192,11 +193,33 @@ export default function LandingPage() {
         </section>
       )}
 
+      {/* ── Destinations: real cities with live hotels ───────── */}
+      {destinations.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Destinations in Nigeria</h2>
+          <p className="text-sm text-gray-500 mt-1 mb-5">We're starting in Port Harcourt and adding more cities as hotels join.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {destinations.map((d) => (
+              <Link key={d.name} to={searchLink({ city: d.name })} onClick={() => track('destination_clicked', { city: d.name })}
+                className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 p-5 min-h-[120px] flex flex-col justify-end hover:shadow-lg transition-shadow">
+                <MapPin className="absolute top-4 right-4 w-5 h-5 text-accent" />
+                <p className="text-lg font-extrabold text-white">{d.name}</p>
+                <p className="text-xs text-primary-100">{d.state ? `${d.state} · ` : ''}{d.count} hotel{d.count === 1 ? '' : 's'}</p>
+              </Link>
+            ))}
+            <div className="rounded-2xl border-2 border-dashed border-gray-200 p-5 min-h-[120px] flex flex-col justify-end">
+              <p className="text-sm font-bold text-gray-700">More cities coming</p>
+              <p className="text-xs text-gray-500 mt-0.5">Lagos, Abuja and beyond, as hotels go live.</p>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Featured hotels ──────────────────────────────────── */}
       <section id="featured-hotels" className="max-w-6xl mx-auto px-4 sm:px-6 py-10 scroll-mt-20">
         <div className="flex items-end justify-between gap-3 mb-5">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Hotels in Port Harcourt</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Hotels on Booqa</h2>
             <p className="text-sm text-gray-500 mt-1">Verified, bookable now, prices include all fees.</p>
           </div>
           {hotels.length > 0 && (

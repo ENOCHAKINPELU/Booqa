@@ -32,7 +32,7 @@ export default function Footer() {
               Booqa
             </Link>
             <p className="flex items-center gap-1.5 text-xs text-primary-200 mt-3">
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Now serving Port Harcourt, Nigeria
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Hotels across Nigeria · starting in Port Harcourt
             </p>
             <p className="text-xs text-primary-300 mt-2 leading-relaxed max-w-[220px]">
               Book directly with hotels - real availability, synced live, no third-party resale.

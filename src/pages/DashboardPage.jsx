@@ -86,7 +86,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center mb-6 text-gray-400">
           <CalendarClock className="w-7 h-7 mx-auto mb-2" />
           <p className="text-sm">No upcoming stays right now.</p>
-          <Link to="/search" className="text-sm font-medium text-primary-700 hover:text-primary-800 mt-2 inline-block">Find a hotel in Port Harcourt →</Link>
+          <Link to="/search" className="text-sm font-medium text-primary-700 hover:text-primary-800 mt-2 inline-block">Find a hotel →</Link>
         </div>
       )}
 

@@ -5,7 +5,7 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms of Service" updated="August 2026">
       <p>
-        Booqa is in early access, currently serving hotels in Port Harcourt, Rivers State.
+        Booqa is in early access, serving hotels across Nigeria, starting in Port Harcourt, Rivers State.
         A formal Terms of Service will be published before public launch - this page exists
         so nothing in the app links to a dead page in the meantime, and to set expectations
         plainly while that document is being finalized.
