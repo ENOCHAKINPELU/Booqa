@@ -56,7 +56,7 @@ export default function BookingPanel({ checkIn, checkOut, adults, children, onCh
         </button>
         <ul className="space-y-1.5 text-xs text-gray-600">
           <li className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-primary-700" /> You won't be charged until you confirm and pay</li>
-          <li className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-primary-700" /> Secure card payment by Flutterwave</li>
+          <li className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-primary-700" /> Pay by card, bank transfer or USSD</li>
           <li className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-primary-700" /> Confirmation emailed as soon as you pay</li>
         </ul>
       </div>
