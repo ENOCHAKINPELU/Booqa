@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Users, ImageOff, ChevronDown, ChevronUp, BedDouble, Maximize2, ShieldCheck } from 'lucide-react';
+import { Users, ImageOff, ChevronDown, ChevronUp, BedDouble, Maximize2, ShieldCheck, Coffee } from 'lucide-react';
 import { formatMoney } from '../utils/dates';
+import { includesBreakfast, cancellationLabel, isFreeCancellation } from '../utils/rooms';
 import MediaGallery from './MediaGallery';
 import { track } from '../utils/analytics';
 
-export default function RoomTypeCard({ roomType, onBook }) {
+export default function RoomTypeCard({ roomType, onBook, highlighted = false }) {
+  const cancel = cancellationLabel(roomType);
   const [expanded, setExpanded] = useState(false);
   // '' means "no preference" - a pooled booking, exactly today's behavior.
   // A specific pick is honored at check-in (035); which rooms show up
@@ -16,7 +18,11 @@ export default function RoomTypeCard({ roomType, onBook }) {
   const pickableRooms = roomType.available_rooms || [];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div
+      id={`room-${roomType.room_type_id}`}
+      className={`bg-white rounded-xl border overflow-hidden scroll-mt-24 transition-shadow duration-300
+                  ${highlighted ? 'border-primary-700 ring-2 ring-primary-700/20 shadow-md' : 'border-gray-200'}`}
+    >
       <div className="flex flex-col sm:flex-row">
         <button
           type="button"
@@ -60,9 +66,14 @@ export default function RoomTypeCard({ roomType, onBook }) {
                 {roomType.amenities.length > 4 && ` · +${roomType.amenities.length - 4} more`}
               </p>
             )}
-            {roomType.cancellation_policy && (
+            {includesBreakfast(roomType) && (
               <p className="flex items-center gap-1 text-xs text-green-700 mt-1.5">
-                <ShieldCheck className="w-3.5 h-3.5" /> {roomType.cancellation_policy}
+                <Coffee className="w-3.5 h-3.5" /> Breakfast included
+              </p>
+            )}
+            {cancel && (
+              <p className={`flex items-center gap-1 text-xs mt-1.5 ${isFreeCancellation(roomType) ? 'text-green-700' : 'text-gray-600'}`}>
+                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" /> {cancel}
               </p>
             )}
             {roomType.available_count <= 3 && (

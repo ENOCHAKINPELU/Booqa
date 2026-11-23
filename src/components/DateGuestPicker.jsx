@@ -6,11 +6,14 @@ import { todayISO, defaultCheckOut } from '../utils/dates';
 // query params) so a reload or a shared link reproduces the same search.
 // Same 4-field grid everywhere it's used (hero, hotel detail, search) -
 // only the icon/label treatment below is new, the contract is unchanged.
-export default function DateGuestPicker({ checkIn, checkOut, adults, children, onChange, compact = false }) {
+// `stacked` keeps it at two columns at every width - for narrow containers
+// like the hotel page's sticky booking panel, where the viewport is wide
+// but the box isn't.
+export default function DateGuestPicker({ checkIn, checkOut, adults, children, onChange, stacked = false }) {
   const set = (patch) => onChange({ checkIn, checkOut, adults, children, ...patch });
 
   return (
-    <div className={`grid gap-3 ${compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-4'}`}>
+    <div className={`grid gap-3 ${stacked ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}>
       <label className="text-sm">
         <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-1.5">
           <CalendarCheck className="w-3.5 h-3.5 text-primary-600" /> Check-in

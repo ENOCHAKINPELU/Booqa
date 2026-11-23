@@ -3,7 +3,7 @@ import { ImageOff, PlayCircle, Move3d } from 'lucide-react';
 import Room360Viewer from './Room360Viewer';
 import { track } from '../utils/analytics';
 
-export default function MediaGallery({ media = [] }) {
+export default function MediaGallery({ media = [], hideComingSoon = false }) {
   const photos = media.filter(m => m.media_type === 'photo');
   const videos = media.filter(m => m.media_type === 'video');
   const tours = media.filter(m => m.media_type === 'tour_360');
@@ -33,7 +33,7 @@ export default function MediaGallery({ media = [] }) {
         )}
       </div>
 
-      {(photos.length + videos.length + tours.length > 1 || tours.length === 0) && (
+      {(photos.length + videos.length + tours.length > 1 || (tours.length === 0 && !hideComingSoon)) && (
         <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
           {[...photos, ...videos, ...tours].map((m) => (
             <button
@@ -60,7 +60,7 @@ export default function MediaGallery({ media = [] }) {
               just isn't uploaded for this room yet - shown rather than
               hidden so guests (and hotel owners) know the feature exists,
               same honesty rule this app follows for ratings/reviews. */}
-          {tours.length === 0 && (
+          {tours.length === 0 && !hideComingSoon && (
             <div
               className="flex-shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50
                          flex flex-col items-center justify-center gap-0.5 text-gray-300 cursor-not-allowed"

@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Loader, MapPin, Phone, Building2, BadgeCheck, Star, Navigation, Clock } from 'lucide-react';
 import api, { authApi } from '../services/api';
 import RoomTypeCard from '../components/RoomTypeCard';
-import DateGuestPicker from '../components/DateGuestPicker';
+import BookingPanel, { MobileBookingBar } from '../components/BookingPanel';
+import RoomComparison from '../components/RoomComparison';
 import SaveHotelButton from '../components/SaveHotelButton';
 import ReviewList from '../components/ReviewList';
+import HotelFacilities from '../components/HotelFacilities';
 import { useAuth } from '../context/AuthContext';
 import { tomorrowISO, defaultCheckOut } from '../utils/dates';
 import { addRecentlyViewed } from '../utils/recentlyViewed';
@@ -53,6 +55,9 @@ export default function HotelDetailPage() {
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [showAllRooms, setShowAllRooms] = useState(false);
+  const [highlightedRoom, setHighlightedRoom] = useState(null);
+  const [roomsInView, setRoomsInView] = useState(false);
+  const roomsRef = useRef(null);
 
   const checkIn = searchParams.get('check_in') || tomorrowISO();
   const checkOut = searchParams.get('check_out') || defaultCheckOut(checkIn);
@@ -90,6 +95,40 @@ export default function HotelDetailPage() {
     setSearchParams(next);
   };
 
+  // The mobile "Choose room" bar gets out of the way while the room list
+  // itself is on screen - it would only cover the Book buttons there.
+  useEffect(() => {
+    const el = roomsRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+    const obs = new IntersectionObserver(([entry]) => setRoomsInView(entry.isIntersecting), { rootMargin: '0px 0px -30% 0px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [authLoading, guest]);
+
+  const scrollToRooms = () => {
+    track('choose_room_clicked', { hotel_id: hotelId });
+    roomsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // "Select" in the comparison table: make sure that room's card is
+  // rendered (it may be past the collapsed preview), then bring it into
+  // view and briefly outline it so the guest's eye lands on it.
+  const selectFromComparison = (rt) => {
+    track('room_compared_select', { hotel_id: hotelId, room_type_id: rt.room_type_id });
+    const index = roomTypes.findIndex((r) => r.room_type_id === rt.room_type_id);
+    if (index >= ROOM_PREVIEW_COUNT) setShowAllRooms(true);
+    setHighlightedRoom(rt.room_type_id);
+    requestAnimationFrame(() => {
+      document.getElementById(`room-${rt.room_type_id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  useEffect(() => {
+    if (!highlightedRoom) return undefined;
+    const t = setTimeout(() => setHighlightedRoom(null), 2500);
+    return () => clearTimeout(t);
+  }, [highlightedRoom]);
+
   const handleBook = (roomType, roomId) => {
     track('room_selected', { hotel_id: hotelId, room_type_id: roomType.room_type_id, room_type_name: roomType.name, room_id: roomId || undefined });
     const params = new URLSearchParams({
@@ -117,7 +156,7 @@ export default function HotelDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-28 lg:pb-8">
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700 mb-4">
         <ArrowLeft className="w-4 h-4" /> Back to search
       </Link>
@@ -190,14 +229,22 @@ export default function HotelDetailPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <DateGuestPicker checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} onChange={updateDates} />
-      </div>
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 lg:items-start">
+      <aside className="mb-8 lg:mb-0 lg:order-2 lg:sticky lg:top-24" aria-label="Book this hotel">
+        <BookingPanel
+          checkIn={checkIn} checkOut={checkOut} adults={adults} children={children} onChange={updateDates}
+          roomTypes={error ? [] : roomTypes} loading={loading} onChooseRoom={scrollToRooms}
+        />
+      </aside>
 
+      <div className="lg:order-1 min-w-0">
+      <section id="rooms" ref={roomsRef} className="scroll-mt-24">
       <h2 className="font-semibold text-gray-900 mb-3">
         Available rooms
         {!loading && roomTypes.length > 0 && <span className="text-gray-400 font-normal text-sm ml-1.5">({roomTypes.length})</span>}
       </h2>
+
+      {!loading && !error && <RoomComparison roomTypes={roomTypes} onSelect={selectFromComparison} />}
 
       {loading && (
         <div className="flex items-center justify-center py-16 text-gray-400">
@@ -214,7 +261,7 @@ export default function HotelDetailPage() {
       {!loading && !error && (
         <div className="space-y-4">
           {(showAllRooms ? roomTypes : roomTypes.slice(0, ROOM_PREVIEW_COUNT)).map((rt) => (
-            <RoomTypeCard key={rt.room_type_id} roomType={rt} onBook={handleBook} />
+            <RoomTypeCard key={rt.room_type_id} roomType={rt} onBook={handleBook} highlighted={highlightedRoom === rt.room_type_id} />
           ))}
         </div>
       )}
@@ -227,6 +274,9 @@ export default function HotelDetailPage() {
           Show all {roomTypes.length} room types
         </button>
       )}
+      </section>
+
+      {hotel?.facilities?.length > 0 && <HotelFacilities facilities={hotel.facilities} />}
 
       {hotel && (hotel.address || hotel.city) && (
         <div className="mt-10 pt-6 border-t border-gray-100">
@@ -277,6 +327,10 @@ export default function HotelDetailPage() {
         <h2 className="font-semibold text-gray-900 mb-4">Guest reviews</h2>
         <ReviewList hotelId={hotelId} />
       </div>
+      </div>
+      </div>
+
+      <MobileBookingBar roomTypes={error ? [] : roomTypes} loading={loading} hidden={roomsInView} onChooseRoom={scrollToRooms} />
     </div>
   );
 }
