@@ -44,7 +44,7 @@ export default function BizNav() {
         </nav>
 
         <div className="hidden lg:flex items-center gap-5">
-          <Link to="/login" className="text-sm font-semibold text-gray-700 hover:text-navy">Login</Link>
+          <Link to="/business" className="text-sm font-semibold text-gray-700 hover:text-navy">Sign in</Link>
           <Link to="/request-demo" className="text-sm font-semibold text-white bg-navy hover:bg-primary-800 rounded-lg px-4 py-2.5 transition-colors">
             Request a Demo
           </Link>
@@ -64,7 +64,7 @@ export default function BizNav() {
             ))}
           </nav>
           <div className="grid grid-cols-2 gap-3 pt-3">
-            <Link to="/login" className="text-center text-sm font-semibold border border-gray-300 rounded-lg py-2.5">Login</Link>
+            <Link to="/business" className="text-center text-sm font-semibold border border-gray-300 rounded-lg py-2.5">Sign in</Link>
             <Link to="/request-demo" className="text-center text-sm font-semibold text-white bg-navy rounded-lg py-2.5">Request a Demo</Link>
           </div>
         </div>

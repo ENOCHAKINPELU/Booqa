@@ -37,7 +37,7 @@ export default function BizFooter() {
               <li><a href="/#about" className="hover:text-white">About us</a></li>
               <li><a href="/#partners" className="hover:text-white">For hotels</a></li>
               <li><Link to="/request-demo" className="hover:text-white">Contact</Link></li>
-              <li><Link to="/login" className="hover:text-white">Login</Link></li>
+              <li><Link to="/business" className="hover:text-white">Sign in</Link></li>
             </ul>
           </div>
 

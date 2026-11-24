@@ -104,7 +104,7 @@ export default function EnquiryPage({ kind }) {
     setStatus('sending');
     setServerError('');
     try {
-      await authApi.post('/enquiries', { kind, ...form, website: honeypot });
+      await authApi.post('/business', { kind, ...form, website: honeypot }, { params: { path: 'enquiries' } });
       setStatus('sent');
       track('enquiry_submitted', { kind });
     } catch (err) {

@@ -2,6 +2,12 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import BusinessLandingPage from './pages/BusinessLandingPage';
 import EnquiryPage from './pages/EnquiryPage';
+import BusinessHomePage from './pages/business/BusinessHomePage';
+import RequestsPage from './pages/business/RequestsPage';
+import NewRequestPage from './pages/business/NewRequestPage';
+import RequestPage from './pages/business/RequestPage';
+import TeamPage from './pages/business/TeamPage';
+import { OpsQueuePage, OpsRequestPage } from './pages/business/OpsPages';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -32,7 +38,8 @@ const CORPORATE_PATHS = ['/', '/request-demo', '/become-a-partner'];
 
 function Shell() {
   const { pathname } = useLocation();
-  const corporate = CORPORATE_PATHS.includes(pathname);
+  // ...and so do the business workspace and the Booqa operations console.
+  const corporate = CORPORATE_PATHS.includes(pathname) || /^\/(business|ops)(\/|$)/.test(pathname);
   // Corporate pages render their own <main>; avoid nesting two.
   const Wrapper = corporate ? 'div' : 'main';
   return (
@@ -43,6 +50,13 @@ function Shell() {
           <Route path="/" element={<BusinessLandingPage />} />
           <Route path="/request-demo" element={<EnquiryPage kind="corporate" />} />
           <Route path="/become-a-partner" element={<EnquiryPage kind="partner" />} />
+          <Route path="/business" element={<BusinessHomePage />} />
+          <Route path="/business/requests" element={<RequestsPage />} />
+          <Route path="/business/requests/new" element={<NewRequestPage />} />
+          <Route path="/business/requests/:id" element={<RequestPage />} />
+          <Route path="/business/team" element={<TeamPage />} />
+          <Route path="/ops" element={<OpsQueuePage />} />
+          <Route path="/ops/requests/:id" element={<OpsRequestPage />} />
           <Route path="/hotels" element={<LandingPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />

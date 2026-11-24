@@ -5,6 +5,8 @@
 // this turns the `redirect` path into that one-line reason.
 function reasonFor(path) {
   if (!path) return null;
+  if (path.startsWith('/business')) return 'to your company workspace';
+  if (path.startsWith('/ops')) return 'to the Booqa operations console';
   if (/^\/hotels\/[^/]+\/book/.test(path)) return 'to complete your booking';
   if (/^\/hotels\/[^/]+/.test(path)) return 'to see rooms, pricing and book your stay';
   if (path.startsWith('/account/bookings')) return 'to view your bookings';
