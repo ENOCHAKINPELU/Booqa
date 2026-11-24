@@ -22,5 +22,8 @@ export function loginSubtitle(redirectTo) {
 
 export function signupSubtitle(redirectTo) {
   const reason = reasonFor(redirectTo);
+  // The workspace reasons read "to your company workspace" - fine after
+  // "Sign in", wrong after "Create an account".
+  if (redirectTo?.startsWith('/business') || !redirectTo) return "Request and manage your company's accommodation in one place.";
   return reason ? `Create an account ${reason}.` : "Request and manage your company's accommodation in one place.";
 }
