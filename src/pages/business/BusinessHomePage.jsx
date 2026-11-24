@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, CalendarCheck, Clock, Inbox, Wallet, Loader2, Building2, ArrowRight } from 'lucide-react';
 import WorkspaceShell, { PageTitle, useWorkspace } from '../../components/business/WorkspaceShell';
-import { StatusPill } from '../../components/business/DashboardMock';
+import StatusPill from '../../components/business/RequestStatus';
 import { biz, errorMessage } from '../../services/businessApi';
 import { naira, dateRange, INDUSTRIES, inputCls } from './bizFormat';
 import { useAuth } from '../../context/AuthContext';
@@ -102,7 +102,7 @@ function Dashboard() {
         <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
           <CalendarCheck className="w-10 h-10 text-primary-300 mx-auto" />
           <h2 className="mt-4 text-lg font-semibold text-gray-950">No requests yet</h2>
-          <p className="mt-1 text-gray-600 max-w-sm mx-auto">Tell us who needs a room, where and when. We'll find options at corporate rates for you to approve.</p>
+          <p className="mt-1 text-gray-600 max-w-sm mx-auto">Tell us who needs a room, where and when. We'll show you the hotels that fit, and you can book them straight away.</p>
           <Link to="/business/requests/new" className="mt-6 inline-flex items-center gap-2 bg-navy text-white font-semibold rounded-xl px-5 py-2.5">
             <Plus className="w-4 h-4" /> Make your first request
           </Link>
@@ -110,9 +110,9 @@ function Dashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Kpi icon={Clock} label="Waiting for your approval" value={data.awaiting_approval} tone="warn" to="/business/requests?status=pending" />
+            <Kpi icon={Clock} label="Awaiting payment" value={data.awaiting_payment} tone="warn" to="/business/requests?status=pending" />
             <Kpi icon={CalendarCheck} label="Upcoming stays" value={data.upcoming} />
-            <Kpi icon={Inbox} label="Open requests" value={data.open_requests} to="/business/requests" />
+            <Kpi icon={Inbox} label="Choosing a hotel" value={data.choosing} to="/business/requests?status=requested" />
             <Kpi icon={Wallet} label="Spend this month" value={naira(data.month_spend)} />
           </div>
 
@@ -163,7 +163,7 @@ function Dashboard() {
                     {data.upcoming.map((u) => (
                       <li key={u.id}>
                         <Link to={`/business/requests/${u.id}`} className="block rounded-xl bg-gray-50 px-3 py-2.5 hover:bg-primary-50">
-                          <p className="text-sm font-medium text-gray-900">{u.property_name || u.city}</p>
+                          <p className="text-sm font-medium text-gray-900">{u.hotel_name || u.city}</p>
                           <p className="text-xs text-gray-500">{dateRange(u.check_in, u.check_out)} · {u.rooms} room{u.rooms === 1 ? '' : 's'}</p>
                         </Link>
                       </li>

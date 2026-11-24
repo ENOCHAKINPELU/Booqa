@@ -1,17 +1,66 @@
 // End-to-end check of lib/business.js against the REAL database schema
-// (HotelOps migration 046), inside one transaction that is always rolled
-// back - nothing is saved. Needs TEST_DATABASE_URL; skipped without it.
+// (HotelOps migrations 046/047), inside one transaction that is always
+// rolled back - nothing is saved. HotelOps itself is replaced by an
+// in-memory fake, so no real rooms are held or paid for.
 //
-//   TEST_DATABASE_URL=postgres://... node --test test/business.flow.test.js
+//   TEST_DATABASE_URL=postgres://... npm test
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'crypto';
 import pg from 'pg';
 import * as biz from '../lib/business.js';
+import { HotelOpsError } from '../lib/hotelops.js';
 
 const url = process.env.TEST_DATABASE_URL;
+const skip = !url && 'TEST_DATABASE_URL not set';
 let client;
 let db;
-const s = {}; // sessions
+const s = {};
+
+const GRA = '11111111-1111-4111-8111-111111111111';
+const TA = '22222222-2222-4222-8222-222222222222';
+const GRA_STD = '33333333-3333-4333-8333-333333333333';
+const TA_STD = '44444444-4444-4444-8444-444444444444';
+
+// ── fake HotelOps ──────────────────────────────────────────────────────────
+const HOTELS = [
+  { id: GRA, name: 'GRA Suites', city: 'Port Harcourt', state: 'Rivers', area: 'GRA' },
+  { id: TA, name: 'Trans-Amadi Inn', city: 'Port Harcourt', state: 'Rivers', area: 'Trans-Amadi' },
+];
+let free = {};        // room type -> rooms free
+let reservations = {};
+let paymentOk = true;
+const calls = [];
+function fakeHotelOps(method, path, { query, body } = {}) {
+  calls.push(`${method} ${path}`);
+  if (method === 'GET' && path === 'hotels') return Promise.resolve(HOTELS);
+  let m = path.match(/^hotels\/([^/]+)$/);
+  if (method === 'GET' && m) return Promise.resolve(HOTELS.find((h) => h.id === m[1]));
+  m = path.match(/^hotels\/([^/]+)\/availability$/);
+  if (m) {
+    const nights = 3;
+    const rate = m[1] === GRA ? 60000 : 40000;
+    const std = m[1] === GRA ? GRA_STD : TA_STD;
+    return Promise.resolve([{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, nights, total_amount: rate * nights, guest_fee_amount: rate * nights * 0.075 }]);
+  }
+  if (method === 'POST' && path === 'reservations') {
+    if ((free[body.room_type_id] || 0) < 1) return Promise.reject(new HotelOpsError(409, 'Sold out', 'ROOM_TYPE_SOLD_OUT'));
+    free[body.room_type_id] -= 1;
+    const id = crypto.randomUUID();
+    reservations[id] = { id, status: 'pending_payment', room_type_id: body.room_type_id };
+    return Promise.resolve({ id, booking_reference: `HTL-${id.slice(0, 6)}`, guest_name: body.guest_name, total_amount: 120000, guest_fee_amount: 9000, expires_at: new Date(Date.now() + 30 * 60000).toISOString() });
+  }
+  if (path === 'reservations/confirm-group-payment') {
+    if (!paymentOk) return Promise.reject(new HotelOpsError(400, 'Payment status is "pending"', 'PAYMENT_NOT_SUCCESSFUL'));
+    body.reservation_ids.forEach((id) => { reservations[id].status = 'confirmed'; });
+    return Promise.resolve([]);
+  }
+  m = path.match(/^reservations\/([^/]+)\/cancel$/);
+  if (m) { reservations[m[1]].status = 'cancelled'; free[reservations[m[1]].room_type_id] += 1; return Promise.resolve({}); }
+  m = path.match(/^reservations\/([^/]+)\/status$/);
+  if (m) return Promise.resolve({ status: reservations[m[1]].status });
+  return Promise.reject(new Error(`unexpected ${method} ${path}`));
+}
 
 before(async () => {
   if (!url) return;
@@ -19,99 +68,109 @@ before(async () => {
   await client.connect();
   await client.query('BEGIN');
   db = { query: (text, params) => client.query(text, params) };
+  biz._setHotelOps(fakeHotelOps);
   const mk = async (key, email, name) => {
-    const { rows } = await client.query(
-      "INSERT INTO booqa_guests (email, password_hash, full_name, email_verified) VALUES ($1, 'x', $2, true) RETURNING id",
-      [email, name]
-    );
+    const { rows } = await client.query("INSERT INTO booqa_guests (email, password_hash, full_name, email_verified) VALUES ($1, 'x', $2, true) RETURNING id", [email, name]);
     s[key] = { sub: rows[0].id, email };
   };
   await mk('admin', 'zz-test-admin@example.com', 'Ada Admin');
-  await mk('requester', 'zz-test-req@example.com', 'Rex Requester');
+  await mk('member', 'zz-test-member@example.com', 'Mo Member');
   await mk('outsider', 'zz-test-out@example.com', 'Olu Outsider');
-  await mk('ops', 'zz-test-ops@example.com', 'Booqa Ops');
-  process.env.BOOQA_ADMIN_EMAILS = 'zz-test-ops@example.com';
+  await biz.createOrganization(db, s.admin, { name: 'Test Marine Ltd' });
+  await biz.addMember(db, s.admin, { email: 'zz-test-member@example.com', role: 'member' });
 });
 
 after(async () => {
+  biz._setHotelOps(null);
   if (!client) return;
   await client.query('ROLLBACK');
   await client.end();
 });
 
-const skip = !url && 'TEST_DATABASE_URL not set';
 const inDays = (n) => {
   const d = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' }) + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
-
-test('full request lifecycle with permissions', { skip }, async () => {
-  // organization + team
-  const org = await biz.createOrganization(db, s.admin, { name: 'Test Marine Ltd', industry: 'Marine & Logistics' });
-  assert.equal(org.role, 'admin');
-  await assert.rejects(biz.createOrganization(db, s.admin, { name: 'Second' }), { code: 'ALREADY_MEMBER' });
-  await biz.addMember(db, s.admin, { email: 'zz-test-req@example.com', role: 'requester' });
-  await assert.rejects(biz.addMember(db, s.requester, { email: 'zz-test-out@example.com' }), { code: 'FORBIDDEN' });
-  await assert.rejects(biz.updateMember(db, s.admin, s.admin.sub, { role: 'requester' }), { code: 'LAST_ADMIN' });
-
-  // request
-  await assert.rejects(biz.createRequest(db, s.requester, { city: 'Port Harcourt', check_in: inDays(5), check_out: inDays(3), rooms: 2 }));
-  const created = await biz.createRequest(db, s.requester, {
-    city: 'Port Harcourt', area: 'GRA', project: 'Onne Base', check_in: inDays(5), check_out: inDays(8), rooms: 2,
-    guests: [{ name: 'Chinedu', phone: '0800' }, { name: '' }],
-  });
-  assert.match(created.reference, /^AR-[A-Z2-9]{6}$/);
-  let r = await biz.getRequest(db, s.requester, created.id);
-  assert.equal(r.status, 'requested');
-  assert.equal(r.guests.length, 1);
-  assert.equal(r.can_approve, false);
-
-  // outsiders and non-ops can't see or act
-  await assert.rejects(biz.getRequest(db, s.outsider, created.id), { code: 'NO_ORGANIZATION' });
-  await assert.rejects(biz.opsAddOption(db, s.admin, created.id, { property_name: 'X', rate_per_night: 1 }), { code: 'FORBIDDEN' });
-
-  // ops proposes options -> pending
-  r = await biz.opsAddOption(db, s.ops, created.id, { property_name: 'Harbour Suites', rate_per_night: 50000 });
-  r = await biz.opsAddOption(db, s.ops, created.id, { property_name: 'GRA Apartments', rate_per_night: 45000 });
-  assert.equal(r.status, 'pending');
-  const cheaper = r.options.find((o) => o.property_name === 'GRA Apartments');
-
-  // requester can't approve; approver can't confirm before approval
-  await assert.rejects(biz.approveRequest(db, s.requester, created.id, { option_id: cheaper.id }), { code: 'FORBIDDEN' });
-  await assert.rejects(biz.opsSetStatus(db, s.ops, created.id, { status: 'confirmed', confirmation_ref: 'X' }), { code: 'BAD_TRANSITION' });
-
-  r = await biz.approveRequest(db, s.admin, created.id, { option_id: cheaper.id });
-  assert.equal(r.status, 'approved');
-  await assert.rejects(biz.opsAddOption(db, s.ops, created.id, { property_name: 'Late', rate_per_night: 1 }), { code: 'NOT_OPEN' });
-
-  // confirmation needs the provider's reference; total = rate x nights x rooms
-  await assert.rejects(biz.opsSetStatus(db, s.ops, created.id, { status: 'confirmed' }));
-  r = await biz.opsSetStatus(db, s.ops, created.id, { status: 'confirmed', confirmation_ref: 'GRA-55812' });
-  assert.equal(r.status, 'confirmed');
-  assert.equal(Number(r.total_cost), 45000 * 3 * 2);
-
-  r = await biz.opsSetStatus(db, s.ops, created.id, { status: 'checked_in' });
-  r = await biz.opsSetStatus(db, s.ops, created.id, { status: 'completed' });
-  assert.equal(r.status, 'completed');
-  await assert.rejects(biz.cancelRequest(db, s.admin, created.id, {}), { code: 'NOT_CANCELLABLE' });
-
-  // timeline recorded every step
-  const actions = r.events.map((e) => e.action);
-  assert.deepEqual(actions, ['submitted', 'option_added', 'option_added', 'approved', 'status:confirmed', 'status:checked_in', 'status:completed']);
-
-  // dashboard reflects it
-  const dash = await biz.dashboard(db, s.admin);
-  assert.equal(dash.total, 1);
-  assert.equal(dash.spend_by_project[0].project, 'Onne Base');
-  assert.equal(dash.spend_by_project[0].spend, 270000);
+const newRequest = (extra = {}) => biz.createRequest(db, s.member, {
+  city: 'Port Harcourt', check_in: inDays(5), check_out: inDays(8), rooms: 2, project: 'Onne Base',
+  guests: [{ name: 'Chinedu' }, { name: 'Amaka' }], ...extra,
 });
 
-test('requester can cancel own open request; ops can cancel too', { skip }, async () => {
-  const a = await biz.createRequest(db, s.requester, { city: 'Lagos', check_in: inDays(2), check_out: inDays(3), rooms: 1 });
-  const r = await biz.cancelRequest(db, s.requester, a.id, { reason: 'Trip postponed' });
+test('match -> book every room -> pay -> follow the hotel to completed', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  const created = await newRequest({ budget_per_night: 50000 });
+
+  // Only the hotel within budget fits.
+  const { fits, close } = await biz.findMatches(db, s.member, created.id);
+  assert.deepEqual(fits.map((f) => f.hotel.id), [TA]);
+  assert.equal(close.length, 0);
+
+  let r = await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
+  assert.equal(r.status, 'pending');
+  assert.equal(r.reservations.length, 2);
+  assert.equal(Number(r.amount_due), 2 * 129000);
+  assert.equal(free[TA_STD], 3);
+
+  // Can't book twice; outsiders can't see it.
+  await assert.rejects(biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD }), { code: 'NOT_OPEN' });
+  await assert.rejects(biz.getRequest(db, s.outsider, created.id), { code: 'NO_ORGANIZATION' });
+
+  const pay = await biz.startPayment(db, s.member, created.id);
+  assert.match(pay.tx_ref, /^BOOQA-G-AR-[A-Z2-9]{6}-\d+$/);
+  assert.equal(pay.amount, 258000);
+
+  paymentOk = false;
+  await assert.rejects(biz.confirmPayment(db, s.member, created.id), { code: 'PAYMENT_PENDING' });
+  paymentOk = true;
+  r = await biz.confirmPayment(db, s.member, created.id);
+  assert.equal(r.status, 'confirmed');
+  assert.equal(Number(r.total_cost), 258000);
+
+  // Status follows the hotel's check-in / check-out.
+  Object.values(reservations).forEach((x) => { if (x.status === 'confirmed') x.status = 'checked_in'; });
+  r = await biz.getRequest(db, s.member, created.id);
+  assert.equal(r.status, 'checked_in');
+  Object.values(reservations).forEach((x) => { if (x.status === 'checked_in') x.status = 'checked_out'; });
+  r = await biz.getRequest(db, s.member, created.id);
+  assert.equal(r.status, 'completed');
+  assert.deepEqual(r.events.map((e) => e.action), ['submitted', 'booked', 'paid', 'status:checked_in', 'status:completed']);
+
+  const dash = await biz.dashboard(db, s.admin);
+  assert.equal(dash.spend_by_project[0].project, 'Onne Base');
+  assert.equal(dash.spend_by_project[0].spend, 258000);
+});
+
+test('nothing fits -> closest hotels with reasons; partial booking holds what is free', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 1 };
+  const created = await newRequest({ area: 'Trans-Amadi', budget_per_night: 50000 });
+  const { fits, close } = await biz.findMatches(db, s.member, created.id);
+  assert.equal(fits.length, 0);
+  assert.deepEqual(close.map((c) => c.hotel.id), [TA, GRA]);
+  assert.deepEqual(close[0].reasons, ['Only 1 of 2 rooms free']);
+  const r = await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
+  assert.equal(r.reservations.length, 1);
+});
+
+test('cancelling releases held rooms; members cancel only their own', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  const created = await newRequest();
+  await biz.bookHotel(db, s.member, created.id, { hotel_id: GRA, room_type_id: GRA_STD });
+  assert.equal(free[GRA_STD], 3);
+  const mine = await biz.createRequest(db, s.admin, { city: 'Port Harcourt', check_in: inDays(2), check_out: inDays(3), rooms: 1 });
+  await assert.rejects(biz.cancelRequest(db, s.member, mine.id, {}), { code: 'FORBIDDEN' });
+  const r = await biz.cancelRequest(db, s.member, created.id, { reason: 'Trip postponed' });
   assert.equal(r.status, 'cancelled');
-  const b = await biz.createRequest(db, s.requester, { city: 'Abuja', check_in: inDays(2), check_out: inDays(4), rooms: 1 });
-  const r2 = await biz.opsSetStatus(db, s.ops, b.id, { status: 'cancelled', note: 'No availability' });
-  assert.equal(r2.status, 'cancelled');
+  assert.equal(free[GRA_STD], 5);
+});
+
+test('a hold that runs out sends the request back to choosing a hotel', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  const created = await newRequest();
+  await biz.bookHotel(db, s.member, created.id, { hotel_id: GRA, room_type_id: GRA_STD });
+  await client.query("UPDATE booqa_accommodation_requests SET hold_expires_at = now() - interval '1 minute' WHERE id = $1", [created.id]);
+  const r = await biz.getRequest(db, s.member, created.id);
+  assert.equal(r.status, 'requested');
+  assert.equal(r.reservations.length, 0);
+  await assert.rejects(biz.startPayment(db, s.member, created.id), { code: 'NOT_PENDING' });
 });

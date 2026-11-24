@@ -27,14 +27,14 @@ export function StatusPill({ status }) {
 const KPIS = [
   { label: 'Total bookings', value: '148', delta: '+12%', up: true, note: 'this quarter' },
   { label: 'Upcoming stays', value: '23', delta: '7 this week', note: '' },
-  { label: 'Pending requests', value: '6', delta: '2 need approval', note: '', warn: true },
+  { label: 'Awaiting payment', value: '2', delta: 'Rooms on hold', note: '', warn: true },
   { label: 'Spend this month', value: '₦18.4M', delta: '-4%', up: false, note: 'vs last month' },
 ];
 
 const RESERVATIONS = [
   { guest: 'Chinedu Okafor', role: 'Field engineer', project: 'Bonny LNG T7', property: 'Harbour Executive Suites', dates: '12–19 Mar', status: 'checked_in' },
   { guest: 'Amaka Eze', role: 'HSE consultant', project: 'Onne Base Upgrade', property: 'Trans-Amadi Residency', dates: '14–16 Mar', status: 'confirmed' },
-  { guest: '3 × Marine crew', role: 'Vessel rotation', project: 'MV Rivers Star', property: 'GRA Serviced Apartments', dates: '15–29 Mar', status: 'approved' },
+  { guest: '3 × Marine crew', role: 'Vessel rotation', project: 'MV Rivers Star', property: 'GRA Serviced Apartments', dates: '15–29 Mar', status: 'confirmed' },
   { guest: 'David Mensah', role: 'Visiting director', project: 'Head office', property: 'Rivoli Suites', dates: '18–20 Mar', status: 'pending' },
   { guest: 'Ngozi Bello', role: 'Trainer', project: 'Q1 Safety Training', property: '—', dates: '22–24 Mar', status: 'requested' },
 ];

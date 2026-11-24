@@ -18,8 +18,8 @@ import { track } from '../utils/analytics';
 
 const STEPS = [
   { img: BIZ_IMAGES.steps.request, title: 'You request', body: 'Tell us who needs a room, where and when.' },
-  { img: BIZ_IMAGES.steps.arrange, title: 'We arrange it', body: 'We find suitable hotels at corporate rates and confirm the booking.' },
-  { img: BIZ_IMAGES.steps.track, title: 'You stay in control', body: 'Approve, track and review every stay and every naira spent.' },
+  { img: BIZ_IMAGES.steps.arrange, title: 'See hotels that fit', body: 'Booqa checks live availability and shows the hotels that match. Book and pay in one go.' },
+  { img: BIZ_IMAGES.steps.track, title: 'Track every stay', body: 'Every booking, guest and naira spent, in one place.' },
 ];
 
 const INDUSTRIES = [
@@ -30,7 +30,7 @@ const INDUSTRIES = [
   { key: 'training', title: 'Training & Events' },
 ];
 
-const DashboardPoints = ['Who is staying where', 'What needs your approval', 'What you spend, by project'];
+const DashboardPoints = ['Who is staying where', 'Every booking reference, per room', 'What you spend, by project'];
 
 export default function BusinessLandingPage() {
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function BusinessLandingPage() {
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
-                <Clock className="w-3.5 h-3.5" /> 2 requests awaiting approval
+                <Clock className="w-3.5 h-3.5" /> Paid · booking references sent
               </div>
             </div>
           </Reveal>
@@ -93,7 +93,7 @@ export default function BusinessLandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <Reveal className="max-w-xl">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-950">How Booqa works</h2>
-              <p className="mt-3 text-gray-600">Three steps from request to stay.</p>
+              <p className="mt-3 text-gray-600">From request to confirmed booking in minutes.</p>
             </Reveal>
             <ol className="mt-12 grid md:grid-cols-3 gap-6">
               {STEPS.map((s, i) => (

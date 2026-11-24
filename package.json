@@ -8,7 +8,7 @@
     "dev:full": "vercel dev",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test test/business.flow.test.js"
+    "test": "node --test test/matching.test.js test/business.flow.test.js"
   },
   "dependencies": {
     "axios": "^1.6.2",

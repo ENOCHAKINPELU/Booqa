@@ -19,11 +19,10 @@ export const INDUSTRIES = ['Oil & Gas', 'Marine & Logistics', 'Engineering & Con
 
 export const EVENT_LABELS = {
   submitted: 'Request submitted',
-  option_added: 'Booqa added an option',
-  option_removed: 'Booqa withdrew an option',
-  approved: 'Option approved',
+  booked: 'Rooms held',
+  paid: 'Paid and confirmed',
+  hold_expired: 'Hold expired',
   cancelled: 'Request cancelled',
-  'status:confirmed': 'Booking confirmed with the hotel',
   'status:checked_in': 'Guests checked in',
   'status:completed': 'Stay completed',
 };

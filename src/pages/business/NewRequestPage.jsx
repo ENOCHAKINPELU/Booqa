@@ -48,7 +48,7 @@ function Content() {
     <div className="max-w-2xl">
       <Link to="/business" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> Back</Link>
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-gray-950">New accommodation request</h1>
-      <p className="mt-1 text-gray-600">We'll come back with suitable options and corporate rates for you to approve.</p>
+      <p className="mt-1 text-gray-600">Booqa checks live availability and shows you the hotels that fit, so you can book straight away.</p>
 
       <form onSubmit={submit} className="mt-8 space-y-6">
         <section className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6 space-y-4">
@@ -58,7 +58,7 @@ function Content() {
             <Field label="Area" optional><input value={form.area} onChange={set('area')} className={inputCls} placeholder="e.g. GRA, Trans-Amadi" /></Field>
             <Field label="Check-in"><input type="date" value={form.check_in} min={tomorrowISO()} onChange={(e) => setForm((f) => ({ ...f, check_in: e.target.value, check_out: f.check_out > e.target.value ? f.check_out : defaultCheckOut(e.target.value) }))} className={inputCls} required /></Field>
             <Field label="Check-out"><input type="date" value={form.check_out} min={form.check_in} onChange={set('check_out')} className={inputCls} required /></Field>
-            <Field label="Rooms"><input type="number" min="1" max="200" value={form.rooms} onChange={set('rooms')} className={inputCls} required /></Field>
+            <Field label="Rooms"><input type="number" min="1" max="20" value={form.rooms} onChange={set('rooms')} className={inputCls} required /></Field>
             <Field label="Project or cost centre" optional><input value={form.project} onChange={set('project')} className={inputCls} placeholder="e.g. Onne Base Upgrade" /></Field>
           </div>
         </section>
@@ -96,7 +96,7 @@ function Content() {
         {error && <p className="text-sm text-red-700 bg-red-50 rounded-xl px-4 py-3" role="alert">{error}</p>}
         <div className="flex gap-3">
           <button disabled={saving} className="bg-navy hover:bg-primary-800 disabled:opacity-50 text-white font-semibold rounded-xl px-6 py-3">
-            {saving ? 'Sending…' : 'Send request'}
+            {saving ? 'Finding hotels…' : 'Find hotels'}
           </button>
           <Link to="/business" className="font-semibold text-gray-700 rounded-xl px-6 py-3 hover:bg-white">Cancel</Link>
         </div>

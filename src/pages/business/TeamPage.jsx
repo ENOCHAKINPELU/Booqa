@@ -6,9 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { inputCls } from './bizFormat';
 
 const ROLE_INFO = {
-  requester: 'Can request accommodation',
-  approver: 'Can also approve options and cancel requests',
-  admin: 'Can also manage the team',
+  requester: 'Can request and book accommodation',
+  admin: 'Can also cancel any booking and manage the team',
 };
 
 function Content() {
@@ -43,8 +42,7 @@ function Content() {
         <label>
           <span className="block text-sm font-medium text-gray-800 mb-1.5">Role</span>
           <select value={role} onChange={(e) => setRole(e.target.value)} className={inputCls}>
-            <option value="requester">Requester</option>
-            <option value="approver">Approver</option>
+            <option value="requester">Member</option>
             <option value="admin">Admin</option>
           </select>
         </label>
@@ -69,8 +67,7 @@ function Content() {
               <div>
                 <select value={m.role} disabled={busy} onChange={(e) => run(() => biz.updateMember(m.id, { role: e.target.value }))}
                   className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm" aria-label={`Role for ${m.full_name}`}>
-                  <option value="requester">Requester</option>
-                  <option value="approver">Approver</option>
+                  <option value="requester">Member</option>
                   <option value="admin">Admin</option>
                 </select>
                 <p className="text-xs text-gray-400 mt-1">{ROLE_INFO[m.role]}</p>

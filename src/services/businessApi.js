@@ -17,16 +17,18 @@ export const biz = {
   requests: (status) => call('get', 'requests', null, status ? { status } : null),
   createRequest: (body) => call('post', 'requests', body),
   request: (id) => call('get', `requests/${id}`),
-  approve: (id, option_id) => call('post', `requests/${id}/approve`, { option_id }),
+  matches: (id) => call('get', `requests/${id}/matches`),
+  book: (id, hotel_id, room_type_id) => call('post', `requests/${id}/book`, { hotel_id, room_type_id }),
+  startPayment: (id) => call('post', `requests/${id}/pay`),
+  confirmPayment: (id) => call('post', `requests/${id}/confirm-payment`),
   cancel: (id, reason) => call('post', `requests/${id}/cancel`, { reason }),
   ops: {
     requests: (status) => call('get', 'ops/requests', null, status ? { status } : null),
     request: (id) => call('get', `ops/requests/${id}`),
-    addOption: (id, body) => call('post', `ops/requests/${id}/options`, body),
-    removeOption: (id, optionId) => call('delete', `ops/requests/${id}/options/${optionId}`),
-    setStatus: (id, body) => call('post', `ops/requests/${id}/status`, body),
   },
 };
 
 export const errorMessage = (err, fallback = 'Something went wrong. Please try again.') =>
   err?.response?.data?.error?.message || err?.friendlyMessage || fallback;
+
+export const errorCode = (err) => err?.response?.data?.error?.code;

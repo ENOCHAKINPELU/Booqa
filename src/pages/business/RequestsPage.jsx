@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Plus, Loader2, Inbox } from 'lucide-react';
 import WorkspaceShell, { PageTitle } from '../../components/business/WorkspaceShell';
-import { StatusPill } from '../../components/business/DashboardMock';
+import StatusPill from '../../components/business/RequestStatus';
 import { biz, errorMessage } from '../../services/businessApi';
 import { dateRange, naira } from './bizFormat';
 
 export const STATUS_TABS = [
   { key: '', label: 'All' },
-  { key: 'requested', label: 'Requested' },
-  { key: 'pending', label: 'Awaiting approval' },
-  { key: 'approved', label: 'Approved' },
+  { key: 'requested', label: 'Choosing hotel' },
+  { key: 'pending', label: 'Awaiting payment' },
   { key: 'confirmed', label: 'Confirmed' },
   { key: 'checked_in', label: 'Checked in' },
   { key: 'completed', label: 'Completed' },
@@ -67,6 +66,7 @@ function Content() {
               <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
                 <th className="font-semibold px-5 py-3">Reference</th>
                 <th className="font-semibold px-3 py-3">Where</th>
+                <th className="font-semibold px-3 py-3">Hotel</th>
                 <th className="font-semibold px-3 py-3">Dates</th>
                 <th className="font-semibold px-3 py-3">Rooms</th>
                 <th className="font-semibold px-3 py-3">Project</th>
@@ -79,6 +79,7 @@ function Content() {
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3.5"><Link to={`/business/requests/${r.id}`} className="font-mono font-semibold text-navy hover:underline">{r.reference}</Link></td>
                   <td className="px-3 py-3.5 text-gray-800">{r.city}{r.area ? `, ${r.area}` : ''}</td>
+                  <td className="px-3 py-3.5 text-gray-600">{r.hotel_name || '—'}</td>
                   <td className="px-3 py-3.5 text-gray-600 whitespace-nowrap">{dateRange(r.check_in, r.check_out)}</td>
                   <td className="px-3 py-3.5 text-gray-600">{r.rooms}</td>
                   <td className="px-3 py-3.5 text-gray-600">{r.project || '—'}</td>

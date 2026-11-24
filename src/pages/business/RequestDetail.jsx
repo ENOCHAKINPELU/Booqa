@@ -1,15 +1,15 @@
 import React from 'react';
-import { CalendarDays, MapPin, BedDouble, Users, Briefcase, Wallet, Check, CircleDot } from 'lucide-react';
-import { StatusPill } from '../../components/business/DashboardMock';
+import { CalendarDays, BedDouble, Users, Briefcase, Wallet, Check, CircleDot, Hotel } from 'lucide-react';
+import StatusPill from '../../components/business/RequestStatus';
 import { naira, dateRange, when, EVENT_LABELS } from './bizFormat';
 
 /*
- * The parts of a request both sides see the same way - used by the client
- * request page and the Booqa operations page.
+ * Parts of a request shown the same way to the company and to the Booqa
+ * operations team.
  */
 
-const STEPS = ['requested', 'pending', 'approved', 'confirmed', 'checked_in', 'completed'];
-const STEP_LABEL = { requested: 'Requested', pending: 'Options sent', approved: 'Approved', confirmed: 'Confirmed', checked_in: 'Checked in', completed: 'Completed' };
+const STEPS = ['requested', 'pending', 'confirmed', 'checked_in', 'completed'];
+const STEP_LABEL = { requested: 'Choose hotel', pending: 'Pay', confirmed: 'Confirmed', checked_in: 'Checked in', completed: 'Completed' };
 
 export function Progress({ status }) {
   if (status === 'cancelled') return null;
@@ -44,9 +44,9 @@ export function RequestHeader({ r, showOrg = false }) {
         <Fact icon={CalendarDays} label="Dates" value={`${dateRange(r.check_in, r.check_out)} · ${r.nights} night${r.nights === 1 ? '' : 's'}`} />
         <Fact icon={BedDouble} label="Rooms" value={r.rooms} />
         <Fact icon={Briefcase} label="Project" value={r.project || '—'} />
-        <Fact icon={Wallet} label="Budget / night" value={r.budget_per_night ? naira(r.budget_per_night) : '—'} />
+        <Fact icon={Wallet} label="Budget / room / night" value={r.budget_per_night ? naira(r.budget_per_night) : 'Any'} />
         <Fact icon={Users} label="Requested by" value={r.requested_by_name || '—'} />
-        {r.total_cost && <Fact icon={Wallet} label="Stay total" value={naira(r.total_cost)} />}
+        {r.hotel_name && <Fact icon={Hotel} label="Hotel" value={`${r.hotel_name}${r.room_type_name ? ` · ${r.room_type_name}` : ''}`} />}
       </dl>
       {r.guests?.length > 0 && (
         <div className="mt-5">
@@ -60,11 +60,6 @@ export function RequestHeader({ r, showOrg = false }) {
       )}
       {r.preferences && <p className="mt-5 text-sm text-gray-700 bg-gray-50 rounded-xl px-4 py-3">{r.preferences}</p>}
       {r.status === 'cancelled' && r.cancelled_reason && <p className="mt-5 text-sm text-red-700 bg-red-50 rounded-xl px-4 py-3">Cancelled: {r.cancelled_reason}</p>}
-      {r.confirmation_ref && (
-        <p className="mt-5 text-sm text-gray-800 bg-primary-50 rounded-xl px-4 py-3">
-          <MapPin className="w-4 h-4 inline text-navy -mt-0.5" /> Confirmed with the hotel · reference <span className="font-mono font-semibold">{r.confirmation_ref}</span>
-        </p>
-      )}
     </div>
   );
 }
@@ -75,6 +70,27 @@ function Fact({ icon: Icon, label, value }) {
       <dt className="flex items-center gap-1.5 text-xs text-gray-500"><Icon className="w-3.5 h-3.5" /> {label}</dt>
       <dd className="mt-0.5 font-medium text-gray-900">{value}</dd>
     </div>
+  );
+}
+
+export function BookingSummary({ r }) {
+  if (!r.reservations?.length || !['confirmed', 'checked_in', 'completed'].includes(r.status)) return null;
+  return (
+    <section className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-semibold text-gray-950">Booking at {r.hotel_name}</h2>
+        <p className="text-sm text-gray-600">Paid <strong className="text-gray-950">{naira(r.total_cost)}</strong>{r.paid_at && ` · ${when(r.paid_at)}`}</p>
+      </div>
+      <p className="text-sm text-gray-500 mt-1">Each guest can show their booking reference at the front desk.</p>
+      <ul className="mt-4 divide-y divide-gray-100 border border-gray-100 rounded-xl">
+        {r.reservations.map((res, i) => (
+          <li key={res.id} className="flex justify-between gap-3 px-4 py-3 text-sm">
+            <span className="text-gray-700">Room {i + 1}{res.guest_name ? ` · ${res.guest_name}` : ''}</span>
+            <span className="font-mono font-semibold text-gray-950">{res.booking_reference}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

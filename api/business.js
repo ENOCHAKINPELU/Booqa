@@ -3,6 +3,7 @@ import { getSessionFromRequest } from '../lib/auth.js';
 import { ok, fail } from '../lib/respond.js';
 import { handleEnquiry } from '../lib/enquiries.js';
 import * as biz from '../lib/business.js';
+import { HotelOpsError } from '../lib/hotelops.js';
 
 /*
  * One serverless function for all of Booqa for Business (Vercel's plan
@@ -17,13 +18,13 @@ import * as biz from '../lib/business.js';
  *   dashboard                         GET
  *   requests                          GET, POST
  *   requests/:id                      GET
- *   requests/:id/approve              POST
+ *   requests/:id/matches              GET    hotels that fit (or the closest)
+ *   requests/:id/book                 POST   hold every room at one hotel
+ *   requests/:id/pay                  POST   start a payment (new tx_ref)
+ *   requests/:id/confirm-payment      POST   confirm once paid
  *   requests/:id/cancel               POST
- *   ops/requests                      GET    Booqa operations team
+ *   ops/requests                      GET    Booqa operations team (read-only)
  *   ops/requests/:id                  GET
- *   ops/requests/:id/options          POST
- *   ops/requests/:id/options/:optId   DELETE
- *   ops/requests/:id/status           POST
  */
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
@@ -38,13 +39,13 @@ const ROUTES = [
   ['GET', /^requests$/, (s, b, q) => biz.listRequests(db, s, q)],
   ['POST', /^requests$/, (s, b) => biz.createRequest(db, s, b), 201],
   ['GET', new RegExp(`^requests/(${UUID})$`), (s, b, q, m) => biz.getRequest(db, s, m[1])],
-  ['POST', new RegExp(`^requests/(${UUID})/approve$`), (s, b, q, m) => biz.approveRequest(db, s, m[1], b)],
+  ['GET', new RegExp(`^requests/(${UUID})/matches$`), (s, b, q, m) => biz.findMatches(db, s, m[1])],
+  ['POST', new RegExp(`^requests/(${UUID})/book$`), (s, b, q, m) => biz.bookHotel(db, s, m[1], b)],
+  ['POST', new RegExp(`^requests/(${UUID})/pay$`), (s, b, q, m) => biz.startPayment(db, s, m[1])],
+  ['POST', new RegExp(`^requests/(${UUID})/confirm-payment$`), (s, b, q, m) => biz.confirmPayment(db, s, m[1])],
   ['POST', new RegExp(`^requests/(${UUID})/cancel$`), (s, b, q, m) => biz.cancelRequest(db, s, m[1], b)],
   ['GET', /^ops\/requests$/, (s, b, q) => biz.opsListRequests(db, s, q)],
   ['GET', new RegExp(`^ops/requests/(${UUID})$`), (s, b, q, m) => biz.opsGetRequest(db, s, m[1])],
-  ['POST', new RegExp(`^ops/requests/(${UUID})/options$`), (s, b, q, m) => biz.opsAddOption(db, s, m[1], b)],
-  ['DELETE', new RegExp(`^ops/requests/(${UUID})/options/(${UUID})$`), (s, b, q, m) => biz.opsRemoveOption(db, s, m[1], m[2])],
-  ['POST', new RegExp(`^ops/requests/(${UUID})/status$`), (s, b, q, m) => biz.opsSetStatus(db, s, m[1], b)],
 ];
 
 export default async function handler(req, res) {
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
     const data = await fn(session, req.body || {}, query, path.match(re));
     return ok(res, data, status);
   } catch (err) {
-    if (err instanceof biz.BizError) return fail(res, err.status, err.message, err.code);
+    if (err instanceof biz.BizError || err instanceof HotelOpsError) return fail(res, err.status, err.message, err.code);
     console.error('[business]', method, path, err);
     return fail(res, 500, 'Something went wrong. Please try again.', 'SERVER_ERROR');
   }
