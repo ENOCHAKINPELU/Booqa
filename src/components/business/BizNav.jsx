@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 export const BIZ_NAV = [
-  { label: 'Solutions', href: '/#solutions' },
-  { label: 'How It Works', href: '/#how-it-works' },
+  { label: 'How it works', href: '/#how-it-works' },
   { label: 'Industries', href: '/#industries' },
-  { label: 'Accommodation Partners', href: '/#partners' },
-  { label: 'About Us', href: '/#about' },
+  { label: 'For hotels', href: '/#partners' },
 ];
 
 export function BooqaMark({ dark = false }) {

@@ -25,8 +25,7 @@ export default function BizFooter() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-white">Platform</p>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><a href="/#solutions" className="hover:text-white">Solutions</a></li>
-              <li><a href="/#how-it-works" className="hover:text-white">How It Works</a></li>
+              <li><a href="/#how-it-works" className="hover:text-white">How it works</a></li>
               <li><a href="/#industries" className="hover:text-white">Industries</a></li>
               <li><Link to="/hotels" className="hover:text-white">Browse accommodation</Link></li>
             </ul>
@@ -35,8 +34,8 @@ export default function BizFooter() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-white">Company</p>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><a href="/#about" className="hover:text-white">About Us</a></li>
-              <li><a href="/#partners" className="hover:text-white">Accommodation Partners</a></li>
+              <li><a href="/#about" className="hover:text-white">About us</a></li>
+              <li><a href="/#partners" className="hover:text-white">For hotels</a></li>
               <li><Link to="/request-demo" className="hover:text-white">Contact</Link></li>
               <li><Link to="/login" className="hover:text-white">Login</Link></li>
             </ul>
