@@ -8,7 +8,7 @@ export default function SignupPage() {
   const { signup } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = searchParams.get('redirect') || '/business';
 
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '' });
   const [error, setError] = useState('');

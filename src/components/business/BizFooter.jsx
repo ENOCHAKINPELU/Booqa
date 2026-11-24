@@ -27,7 +27,6 @@ export default function BizFooter() {
             <ul className="mt-4 space-y-2.5 text-sm">
               <li><a href="/#how-it-works" className="hover:text-white">How it works</a></li>
               <li><a href="/#industries" className="hover:text-white">Industries</a></li>
-              <li><Link to="/hotels" className="hover:text-white">Browse accommodation</Link></li>
             </ul>
           </div>
 

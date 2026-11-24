@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import BusinessLandingPage from './pages/BusinessLandingPage';
 import EnquiryPage from './pages/EnquiryPage';
 import BusinessHomePage from './pages/business/BusinessHomePage';
@@ -8,13 +8,9 @@ import NewRequestPage from './pages/business/NewRequestPage';
 import RequestPage from './pages/business/RequestPage';
 import TeamPage from './pages/business/TeamPage';
 import { OpsQueuePage, OpsRequestPage } from './pages/business/OpsPages';
+import BizNav from './components/business/BizNav';
+import BizFooter from './components/business/BizFooter';
 import { AuthProvider } from './context/AuthContext';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import LandingPage from './pages/LandingPage';
-import SearchPage from './pages/SearchPage';
-import HotelDetailPage from './pages/HotelDetailPage';
-import BookingPage from './pages/BookingPage';
 import PaymentPage from './pages/PaymentPage';
 import ConfirmationPage from './pages/ConfirmationPage';
 import ManageBookingPage from './pages/ManageBookingPage';
@@ -23,28 +19,36 @@ import LoginPage from './pages/LoginPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
-import BookingsListPage from './pages/BookingsListPage';
-import SavedHotelsPage from './pages/SavedHotelsPage';
-import BookingDetailPage from './pages/BookingDetailPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// The corporate site ("/", "/request-demo", "/become-a-partner") has its
-// own navigation and footer; everything else is the guest booking site
-// with the original Header/Footer.
-const CORPORATE_PATHS = ['/', '/request-demo', '/become-a-partner'];
+/*
+ * Booqa is business-only for now: organizations request and manage
+ * accommodation through the workspace. The individual-guest booking site
+ * (hotel search, hotel pages, guest checkout, guest account) is switched
+ * off - its routes redirect home. Its code is kept (pages/LandingPage,
+ * SearchPage, HotelDetailPage, BookingPage, account pages) so it can be
+ * brought back by restoring the routes from git history.
+ *
+ * Still reachable, but not linked anywhere: payment, confirmation and
+ * manage-booking, so anyone who already booked as an individual can finish
+ * paying, view or cancel that booking.
+ */
+
+// Pages that render their own navigation and footer.
+const OWN_LAYOUT = /^\/($|request-demo$|become-a-partner$|business(\/|$)|ops(\/|$))/;
+
+// Retired individual-booking entry points.
+const RETIRED = ['/hotels', '/hotels/:hotelId', '/hotels/:hotelId/book', '/search', '/account', '/account/bookings', '/account/bookings/:id', '/account/saved'];
 
 function Shell() {
   const { pathname } = useLocation();
-  // ...and so do the business workspace and the Booqa operations console.
-  const corporate = CORPORATE_PATHS.includes(pathname) || /^\/(business|ops)(\/|$)/.test(pathname);
-  // Corporate pages render their own <main>; avoid nesting two.
-  const Wrapper = corporate ? 'div' : 'main';
+  const ownLayout = OWN_LAYOUT.test(pathname);
+  const Wrapper = ownLayout ? 'div' : 'main'; // own-layout pages render their own <main>
   return (
     <div className="min-h-screen flex flex-col">
-      {!corporate && <Header />}
+      {!ownLayout && <BizNav />}
       <Wrapper className="flex-1">
         <Routes>
           <Route path="/" element={<BusinessLandingPage />} />
@@ -57,28 +61,25 @@ function Shell() {
           <Route path="/business/team" element={<TeamPage />} />
           <Route path="/ops" element={<OpsQueuePage />} />
           <Route path="/ops/requests/:id" element={<OpsRequestPage />} />
-          <Route path="/hotels" element={<LandingPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
-              <Route path="/hotels/:hotelId/book" element={<BookingPage />} />
-              <Route path="/reservations/:id/pay" element={<PaymentPage />} />
-              <Route path="/reservations/:id/confirmation" element={<ConfirmationPage />} />
-              <Route path="/manage" element={<ManageBookingPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/account" element={<DashboardPage />} />
-              <Route path="/account/bookings" element={<BookingsListPage />} />
-              <Route path="/account/bookings/:id" element={<BookingDetailPage />} />
-              <Route path="/account/saved" element={<SavedHotelsPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="*" element={<NotFoundPage />} />
+
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+
+          {/* Existing individual bookings only - see note above */}
+          <Route path="/reservations/:id/pay" element={<PaymentPage />} />
+          <Route path="/reservations/:id/confirmation" element={<ConfirmationPage />} />
+          <Route path="/manage" element={<ManageBookingPage />} />
+
+          {RETIRED.map((p) => <Route key={p} path={p} element={<Navigate to="/" replace />} />)}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Wrapper>
-      {!corporate && <Footer />}
+      {!ownLayout && <BizFooter />}
     </div>
   );
 }

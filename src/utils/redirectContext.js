@@ -22,5 +22,5 @@ export function loginSubtitle(redirectTo) {
 
 export function signupSubtitle(redirectTo) {
   const reason = reasonFor(redirectTo);
-  return reason ? `Create an account ${reason}.` : 'Faster checkout and a place to manage every booking.';
+  return reason ? `Create an account ${reason}.` : "Request and manage your company's accommodation in one place.";
 }
