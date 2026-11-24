@@ -176,7 +176,7 @@ export default function SearchPage() {
       <div className="bg-navy">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <nav aria-label="Breadcrumb" className="text-xs text-primary-200 mb-3 flex items-center gap-1">
-            <Link to="/" className="hover:text-white">Home</Link>
+            <Link to="/hotels" className="hover:text-white">Home</Link>
             <ChevronRight className="w-3 h-3" />
             {city ? (
               <>

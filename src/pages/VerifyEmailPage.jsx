@@ -34,7 +34,7 @@ export default function VerifyEmailPage() {
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Email verified</h1>
-          <Link to="/" className="btn-primary inline-block">Continue to Booqa</Link>
+          <Link to="/hotels" className="btn-primary inline-block">Continue to Booqa</Link>
         </>
       )}
       {status === 'error' && (

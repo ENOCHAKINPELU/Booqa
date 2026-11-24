@@ -157,7 +157,7 @@ export default function HotelDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-28 lg:pb-8">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700 mb-4">
+      <Link to="/search" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700 mb-4">
         <ArrowLeft className="w-4 h-4" /> Back to search
       </Link>
 

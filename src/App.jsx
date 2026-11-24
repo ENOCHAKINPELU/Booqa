@@ -1,5 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import BusinessLandingPage from './pages/BusinessLandingPage';
+import EnquiryPage from './pages/EnquiryPage';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -23,15 +25,25 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-export default function App() {
+// The corporate site ("/", "/request-demo", "/become-a-partner") has its
+// own navigation and footer; everything else is the guest booking site
+// with the original Header/Footer.
+const CORPORATE_PATHS = ['/', '/request-demo', '/become-a-partner'];
+
+function Shell() {
+  const { pathname } = useLocation();
+  const corporate = CORPORATE_PATHS.includes(pathname);
+  // Corporate pages render their own <main>; avoid nesting two.
+  const Wrapper = corporate ? 'div' : 'main';
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
+    <div className="min-h-screen flex flex-col">
+      {!corporate && <Header />}
+      <Wrapper className="flex-1">
+        <Routes>
+          <Route path="/" element={<BusinessLandingPage />} />
+          <Route path="/request-demo" element={<EnquiryPage kind="corporate" />} />
+          <Route path="/become-a-partner" element={<EnquiryPage kind="partner" />} />
+          <Route path="/hotels" element={<LandingPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
               <Route path="/hotels/:hotelId/book" element={<BookingPage />} />
@@ -50,10 +62,18 @@ export default function App() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        </Routes>
+      </Wrapper>
+      {!corporate && <Footer />}
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Shell />
       </BrowserRouter>
     </AuthProvider>
   );

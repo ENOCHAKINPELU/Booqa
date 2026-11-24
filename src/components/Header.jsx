@@ -11,13 +11,13 @@ export default function Header() {
   const handleLogout = async () => {
     setMenuOpen(false);
     await logout();
-    navigate('/');
+    navigate('/hotels');
   };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg text-navy">
+        <Link to="/hotels" className="flex items-center gap-2 font-bold text-lg text-navy">
           {/* Mark from the real logo (public/booqa-logo.png), wordmark set
               in the app's own type rather than baked into the image - scales
               cleanly at any size and stays crisp on retina screens. */}
@@ -26,6 +26,9 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center gap-5">
+          <Link to="/" className="hidden md:inline text-sm font-medium text-gray-600 hover:text-primary-800 transition-colors">
+            For business
+          </Link>
           <Link
             to="/manage"
             className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-primary-800 transition-colors"

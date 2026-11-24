@@ -19,7 +19,7 @@ export default function Footer() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate('/hotels');
   };
 
   return (
@@ -27,7 +27,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-6">
           <div className="col-span-2 sm:col-span-1">
-            <Link to="/" className="flex items-center gap-2 font-bold text-lg text-white">
+            <Link to="/hotels" className="flex items-center gap-2 font-bold text-lg text-white">
               <img src="/favicon.png" alt="" className="w-8 h-8" />
               Booqa
             </Link>
