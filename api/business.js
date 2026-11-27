@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     const query = { ...req.query };
     delete query.path;
     try {
-      if (path === 'public/hotels') return ok(res, await biz.publicHotels(query));
+      if (path === 'public/hotels') return ok(res, await biz.publicHotels(query, db));
       if (one) return ok(res, await biz.publicHotel(one[1]));
       return fail(res, 404, 'Not found', 'NOT_FOUND');
     } catch (err) {

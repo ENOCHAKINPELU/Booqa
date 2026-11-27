@@ -219,8 +219,8 @@ test('inviting someone without an account: they join once they sign up and verif
 
 test('anyone can browse hotels without signing in; the workspace list still needs a company', { skip }, async () => {
   const pub = await biz.publicHotels({});
-  assert.deepEqual(pub.map((h) => h.name).sort(), ['GRA Suites', 'Trans-Amadi Inn']);
-  const one = await biz.publicHotels({ q: 'trans' });
-  assert.deepEqual(one.map((h) => h.name), ['Trans-Amadi Inn']);
+  assert.deepEqual(pub.hotels.map((h) => h.name).sort(), ['GRA Suites', 'Trans-Amadi Inn']);
+  const one = await biz.publicHotels({ where: 'trans' });
+  assert.deepEqual(one.hotels.map((h) => h.name), ['Trans-Amadi Inn'], 'a hotel name matches first');
   await assert.rejects(biz.listHotels(db, s.outsider, {}), { code: 'NO_ORGANIZATION' });
 });

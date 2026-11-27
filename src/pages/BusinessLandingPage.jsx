@@ -181,7 +181,7 @@ function Hero() {
 // Real hotels companies can book, straight from HotelOps - no sign-in.
 function HotelsShowcase() {
   const [hotels, setHotels] = useState(null);
-  useEffect(() => { biz.publicHotels().then(setHotels).catch(() => setHotels([])); }, []);
+  useEffect(() => { biz.publicHotels().then((r) => setHotels(r.hotels)).catch(() => setHotels([])); }, []);
   if (hotels && hotels.length === 0) return null;
   return (
     <section id="hotels" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">

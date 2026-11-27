@@ -27,7 +27,12 @@ export function HotelCard({ h, href }) {
       <PhotoCarousel photos={h.photos} alt={h.name} className="h-52" />
       <div className="p-5">
         <h3 className="font-display text-lg font-bold text-gray-950 group-hover:text-navy transition-colors">{h.name}</h3>
-        <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3.5 h-3.5" /> {[h.area, h.city].filter(Boolean).join(', ') || h.state}</p>
+        <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{[h.address, h.area, h.city].filter(Boolean).join(', ') || h.state}</span></p>
+        {h.distance_km != null && (
+          <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-navy bg-primary-50 rounded-full px-2.5 py-1">
+            {h.distance_km < 0.5 ? 'Right here' : `${h.approximate ? 'About ' : ''}${h.distance_km} km away`}
+          </p>
+        )}
         {h.facilities.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {[...h.facilities].sort(byFacilityPriority).slice(0, 4).map((f) => {
@@ -58,9 +63,18 @@ function Directory({ publicMode }) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState(text);
 
+  // The server does the search: a hotel name, or a place ranked by real
+  // distance ("peter odili port harcourt").
+  const [place, setPlace] = useState(null);
+  const [far, setFar] = useState(false);
   useEffect(() => {
-    (publicMode ? biz.publicHotels() : biz.hotels()).then(setHotels).catch((err) => setError(errorMessage(err)));
-  }, [publicMode]);
+    setHotels(null);
+    setError('');
+    const params = text ? { where: text } : undefined;
+    (publicMode ? biz.publicHotels(params) : biz.hotels(params))
+      .then((r) => { setHotels(r.hotels); setPlace(r.place); setFar(r.far); })
+      .catch((err) => setError(errorMessage(err)));
+  }, [publicMode, text]);
 
   const set = (patch) => {
     const next = new URLSearchParams(params);
@@ -77,11 +91,7 @@ function Directory({ publicMode }) {
       .slice(0, 10);
   }, [hotels]);
 
-  const visible = useMemo(() => (hotels || []).filter((h) => {
-    const term = norm(text);
-    if (term && ![h.name, h.area, h.city, h.state].some((x) => norm(x).includes(term))) return false;
-    return selected.every((k) => h.facilities.some((f) => f.key === k));
-  }), [hotels, text, selected]);
+  const visible = useMemo(() => (hotels || []).filter((h) => selected.every((k) => h.facilities.some((f) => f.key === k))), [hotels, selected]);
 
   const toggle = (key) => set({ facility: (selected.includes(key) ? selected.filter((k) => k !== key) : [...selected, key]).join(',') });
   // Carry the search to the hotel page.
@@ -142,7 +152,13 @@ function Directory({ publicMode }) {
       )}
       {hotels && visible.length > 0 && (
         <>
-          <p className="mt-6 text-sm text-gray-500">{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}</p>
+          <p className="mt-6 text-sm text-gray-600">
+            {place
+              ? (far
+                ? <>No hotels within 20 km of <strong className="text-gray-900">{place.label}</strong> yet. These are the nearest.</>
+                : <>{visible.length} hotel{visible.length === 1 ? '' : 's'} near <strong className="text-gray-900">{place.label}</strong>, nearest first</>)
+              : <>{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}</>}
+          </p>
           <ul className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {visible.map((h) => <li key={h.id}><HotelCard h={h} href={hrefFor(h)} /></li>)}
           </ul>
