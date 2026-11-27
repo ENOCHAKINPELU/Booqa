@@ -30,8 +30,32 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        // Headings on the corporate site (rounded geometric display face).
+        display: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      transitionTimingFunction: {
+        // Smooth ease-out used for reveals and hovers across the corporate site.
+        out: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       keyframes: {
+        // Corporate site: gentle bob for floating UI cards.
+        bob: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        // Hand-drawn underline drawing itself in under the headline.
+        draw: {
+          '0%': { strokeDashoffset: '320' },
+          '100%': { strokeDashoffset: '0' },
+        },
+        fadeUp: {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        popIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
         // Slow cinematic drift for the hero background photos - see
         // HeroCarousel.jsx. Runs continuously on every image regardless of
         // which is currently visible (crossfade handles visibility), so
@@ -56,6 +80,10 @@ export default {
         },
       },
       animation: {
+        bob: 'bob 6s ease-in-out infinite',
+        draw: 'draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both',
+        fadeUp: 'fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both',
+        popIn: 'popIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both',
         kenburns: 'kenburns 14s ease-out infinite alternate',
         float: 'float 6s ease-in-out infinite',
         heroFadeIn: 'heroFadeIn 0.7s ease-out',

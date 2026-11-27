@@ -30,6 +30,7 @@ const HOTELS = [
 let free = {};        // room type -> rooms free
 let reservations = {};
 let paymentOk = true;
+const mails = [];
 const calls = [];
 function fakeHotelOps(method, path, { query, body } = {}) {
   calls.push(`${method} ${path}`);
@@ -69,6 +70,11 @@ before(async () => {
   await client.query('BEGIN');
   db = { query: (text, params) => client.query(text, params) };
   biz._setHotelOps(fakeHotelOps);
+  biz._setMailer({
+    sendBookingConfirmed: async (r, to) => { mails.push({ type: 'confirmed', ref: r.reference, to: to.map((x) => x.email).sort() }); },
+    sendBookingCancelled: async (r, to, opts) => { mails.push({ type: 'cancelled', ref: r.reference, refunded: opts.refunded }); },
+    sendTeamInvite: async (i) => { mails.push({ type: 'invite', email: i.email }); },
+  });
   const mk = async (key, email, name) => {
     const { rows } = await client.query("INSERT INTO booqa_guests (email, password_hash, full_name, email_verified) VALUES ($1, 'x', $2, true) RETURNING id", [email, name]);
     s[key] = { sub: rows[0].id, email };
@@ -82,6 +88,7 @@ before(async () => {
 
 after(async () => {
   biz._setHotelOps(null);
+  biz._setMailer(null);
   if (!client) return;
   await client.query('ROLLBACK');
   await client.end();
@@ -173,4 +180,39 @@ test('a hold that runs out sends the request back to choosing a hotel', { skip }
   assert.equal(r.status, 'requested');
   assert.equal(r.reservations.length, 0);
   await assert.rejects(biz.startPayment(db, s.member, created.id), { code: 'NOT_PENDING' });
+});
+
+test('one confirmation email per booking, to the booker and the admins; cancelling a paid booking says refunded', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  mails.length = 0;
+  const created = await newRequest();
+  await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
+  await biz.startPayment(db, s.member, created.id);
+  await biz.confirmPayment(db, s.member, created.id);
+  assert.deepEqual(mails, [{ type: 'confirmed', ref: created.reference, to: ['zz-test-admin@example.com', 'zz-test-member@example.com'] }]);
+  await biz.cancelRequest(db, s.member, created.id, { reason: 'Project moved' });
+  assert.deepEqual(mails[1], { type: 'cancelled', ref: created.reference, refunded: true });
+
+  // A request still choosing a hotel is cancelled without an email.
+  const other = await newRequest();
+  await biz.cancelRequest(db, s.member, other.id, {});
+  assert.equal(mails.length, 2);
+});
+
+test('inviting someone without an account: they join once they sign up and verify their email', { skip }, async () => {
+  mails.length = 0;
+  const team = await biz.addMember(db, s.admin, { email: 'ZZ-New-Hire@Example.com', role: 'member' });
+  assert.equal(team.result, 'invited');
+  assert.deepEqual(team.invites.map((i) => i.email), ['zz-new-hire@example.com']);
+  assert.deepEqual(mails, [{ type: 'invite', email: 'zz-new-hire@example.com' }]);
+  await assert.rejects(biz.addMember(db, s.member, { email: 'x@example.com' }), { code: 'FORBIDDEN' });
+
+  const { rows } = await client.query("INSERT INTO booqa_guests (email, password_hash, full_name, email_verified) VALUES ('zz-new-hire@example.com', 'x', 'New Hire', false) RETURNING id");
+  const hire = { sub: rows[0].id, email: 'zz-new-hire@example.com' };
+  assert.equal((await biz.me(db, hire)).membership, null, 'not before the email is verified');
+  await client.query('UPDATE booqa_guests SET email_verified = true WHERE id = $1', [hire.sub]);
+  const joined = await biz.me(db, hire);
+  assert.equal(joined.membership.org_name, 'Test Marine Ltd');
+  assert.equal(joined.membership.role, 'requester');
+  assert.equal((await biz.listMembers(db, s.admin)).invites.length, 0);
 });

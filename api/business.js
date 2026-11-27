@@ -15,6 +15,9 @@ import { HotelOpsError } from '../lib/hotelops.js';
  *   org                               POST   create organization
  *   team                              GET, POST
  *   team/:guestId                     PATCH, DELETE
+ *   team/invites/:inviteId            DELETE cancel an invitation
+ *   hotels                            GET    hotel directory (search: q, city)
+ *   hotels/:id                        GET    one hotel: photos, facilities, rooms
  *   dashboard                         GET
  *   requests                          GET, POST
  *   requests/:id                      GET
@@ -35,7 +38,10 @@ const ROUTES = [
   ['POST', /^team$/, (s, b) => biz.addMember(db, s, b)],
   ['PATCH', new RegExp(`^team/(${UUID})$`), (s, b, q, m) => biz.updateMember(db, s, m[1], b)],
   ['DELETE', new RegExp(`^team/(${UUID})$`), (s, b, q, m) => biz.removeMember(db, s, m[1])],
+  ['DELETE', new RegExp(`^team/invites/(${UUID})$`), (s, b, q, m) => biz.cancelInvite(db, s, m[1])],
   ['GET', /^dashboard$/, (s) => biz.dashboard(db, s)],
+  ['GET', /^hotels$/, (s, b, q) => biz.listHotels(db, s, q)],
+  ['GET', new RegExp('^hotels/(' + UUID + ')$'), (s, b, q, m) => biz.getHotel(db, s, m[1])],
   ['GET', /^requests$/, (s, b, q) => biz.listRequests(db, s, q)],
   ['POST', /^requests$/, (s, b) => biz.createRequest(db, s, b), 201],
   ['GET', new RegExp(`^requests/(${UUID})$`), (s, b, q, m) => biz.getRequest(db, s, m[1])],

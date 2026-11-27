@@ -7,6 +7,7 @@ const u = (id, w = 1600) => `https://images.unsplash.com/photo-${id}?w=${w}&q=75
 
 export const BIZ_IMAGES = {
   heroLounge: u('1590381105924-c72589b9ef3f', 1400),     // wood-panelled executive hotel lounge
+  heroRoom: u('1611892440504-42a792e24d32', 1400),       // warm wood-panelled hotel room with artwork
   steps: {
     request: u('1551836022-d5d88e9218df', 900),          // two professionals planning at a laptop
     arrange: u('1631049307264-da0ec9d70304', 900),       // business hotel room, city view

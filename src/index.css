@@ -6,8 +6,23 @@
    HotelOps' visual language rather than inventing a parallel one. */
 
 @layer base {
+  /* Smooth in-page scrolling (nav links to #sections), stopping below the
+     sticky header instead of under it. */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+  }
   body {
     @apply font-sans bg-gray-50 text-gray-900 antialiased;
+  }
+  /* Respect people who turn motion off: no smooth scroll, no animations. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
   * {
     @apply border-gray-200;

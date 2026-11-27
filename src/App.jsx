@@ -7,6 +7,8 @@ import RequestsPage from './pages/business/RequestsPage';
 import NewRequestPage from './pages/business/NewRequestPage';
 import RequestPage from './pages/business/RequestPage';
 import TeamPage from './pages/business/TeamPage';
+import HotelsPage from './pages/business/HotelsPage';
+import HotelPage from './pages/business/HotelPage';
 import { OpsQueuePage, OpsRequestPage } from './pages/business/OpsPages';
 import BizNav from './components/business/BizNav';
 import BizFooter from './components/business/BizFooter';
@@ -59,6 +61,8 @@ function Shell() {
           <Route path="/business/requests/new" element={<NewRequestPage />} />
           <Route path="/business/requests/:id" element={<RequestPage />} />
           <Route path="/business/team" element={<TeamPage />} />
+          <Route path="/business/hotels" element={<HotelsPage />} />
+          <Route path="/business/hotels/:id" element={<HotelPage />} />
           <Route path="/ops" element={<OpsQueuePage />} />
           <Route path="/ops/requests/:id" element={<OpsRequestPage />} />
 

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, LogOut, LayoutDashboard, ListChecks, Users, Wrench } from 'lucide-react';
+import { Loader2, LogOut, LayoutDashboard, ListChecks, Users, Wrench, Building2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { biz } from '../../services/businessApi';
 import { BooqaMark } from './BizNav';
@@ -42,6 +42,7 @@ export default function WorkspaceShell({ children, ops = false }) {
     : [
       { to: '/business', label: 'Overview', icon: LayoutDashboard, end: true },
       { to: '/business/requests', label: 'Requests', icon: ListChecks },
+      { to: '/business/hotels', label: 'Hotels', icon: Building2 },
       ...(org?.role === 'admin' ? [{ to: '/business/team', label: 'Team', icon: Users }] : []),
     ];
 

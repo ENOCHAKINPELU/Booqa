@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import WorkspaceShell, { useWorkspace } from '../../components/business/WorkspaceShell';
 import { biz, errorMessage } from '../../services/businessApi';
@@ -20,9 +20,14 @@ function Field({ label, optional, children, className = '' }) {
 function Content() {
   const { org } = useWorkspace();
   const navigate = useNavigate();
+  // Coming from a hotel's page ("Request rooms here"): start with its city
+  // and area, and note the preferred hotel.
+  const [params] = useSearchParams();
   const [form, setForm] = useState({
-    city: 'Port Harcourt', area: '', check_in: tomorrowISO(), check_out: defaultCheckOut(tomorrowISO()),
-    rooms: 1, project: '', budget_per_night: '', preferences: '',
+    city: params.get('city') || 'Port Harcourt', area: params.get('area') || '',
+    check_in: tomorrowISO(), check_out: defaultCheckOut(tomorrowISO()),
+    rooms: 1, project: '', budget_per_night: '',
+    preferences: params.get('hotel') ? `Preferred hotel: ${params.get('hotel')}` : '',
   });
   const [guests, setGuests] = useState([{ name: '', phone: '' }]);
   const [saving, setSaving] = useState(false);
