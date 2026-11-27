@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, MapPin, Clock, Navigation, Users, BedDouble, Maximi
 import HotelFacilities from '../../components/HotelFacilities';
 import MediaGallery from '../../components/MediaGallery';
 import { biz, errorMessage } from '../../services/businessApi';
-import { naira, policyShort, policyText } from './bizFormat';
+import { naira, CANCELLATION_POLICY, CANCELLATION_SHORT } from './bizFormat';
 import { useAuth } from '../../context/AuthContext';
 
 /*
@@ -56,7 +56,6 @@ function RoomType({ rt, bookHref, signedIn }) {
               {rt.size_sqm && <span className="flex items-center gap-1"><Maximize2 className="w-4 h-4" /> {Number(rt.size_sqm)} m²</span>}
             </div>
             {rt.amenities.length > 0 && <p className="text-xs text-gray-500 mt-2">{rt.amenities.join(' · ')}</p>}
-            <p className="text-xs font-medium text-emerald-700 mt-2" title={policyText(rt.free_cancellation_hours, rt.cancellation_fee_percent)}>{policyShort(rt.free_cancellation_hours, rt.cancellation_fee_percent)}</p>
           </div>
           <div className="sm:text-right flex-shrink-0">
             <p className="text-lg font-bold text-gray-950">{naira(rt.per_night)}</p>
@@ -137,7 +136,8 @@ function Content() {
             <Link to={bookLink} className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl py-3">
               <Plus className="w-4 h-4" /> Book rooms here
             </Link>
-            <p className="text-xs text-gray-500 mt-2">{guest ? 'Choose dates and rooms, see live availability, then hold and pay.' : 'Sign in or create a free company account to book.'}</p>
+            <p className="text-xs font-medium text-emerald-700 mt-3" title={CANCELLATION_POLICY}>{CANCELLATION_SHORT}</p>
+            <p className="text-xs text-gray-500 mt-1">{guest ? 'Choose dates and rooms, see live availability, then hold and pay.' : 'Sign in or create a free company account to book.'}</p>
           </div>
           <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3 text-sm">
             {(hotel.check_in_time || hotel.check_out_time) && (

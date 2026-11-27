@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, BedDouble, Users, Briefcase, Wallet, Check, CircleDot, Hotel, FileText } from 'lucide-react';
 import StatusPill from '../../components/business/RequestStatus';
-import { naira, dateRange, when, EVENT_LABELS, policyText } from './bizFormat';
+import { naira, dateRange, when, EVENT_LABELS, CANCELLATION_POLICY } from './bizFormat';
 
 /*
  * Parts of a request shown the same way to the company and to the Booqa
@@ -75,16 +75,12 @@ function Fact({ icon: Icon, label, value }) {
   );
 }
 
-/** The cancellation policy of the rooms in a booking - one line per distinct policy. */
-export function PolicyNote({ reservations }) {
-  const lines = [...new Set((reservations || [])
-    .filter((res) => res.cancellation_fee_percent !== undefined || res.free_cancellation_hours !== undefined)
-    .map((res) => `${res.room_type_name ? `${res.room_type_name}: ` : ''}${policyText(res.free_cancellation_hours, res.cancellation_fee_percent)}`))];
-  if (!lines.length) return null;
+/** Booqa's cancellation rule - the same for every booking. */
+export function PolicyNote() {
   return (
     <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Cancellation policy</p>
-      {lines.map((l) => <p key={l} className="text-sm text-gray-700 mt-1">{l}</p>)}
+      <p className="text-sm text-gray-700 mt-1">{CANCELLATION_POLICY}</p>
     </div>
   );
 }
@@ -114,7 +110,7 @@ export function BookingSummary({ r, receipt = false }) {
           </li>
         ))}
       </ul>
-      <PolicyNote reservations={r.reservations} />
+      <PolicyNote />
     </section>
   );
 }

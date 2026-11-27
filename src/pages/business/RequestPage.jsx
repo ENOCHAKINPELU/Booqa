@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, Building2, Timer, CreditCard, Landmark, Smartphone,
 import WorkspaceShell from '../../components/business/WorkspaceShell';
 import { biz, errorMessage, errorCode } from '../../services/businessApi';
 import { RequestHeader, Timeline, BookingSummary, PolicyNote } from './RequestDetail';
-import { naira, policyShort, policyText } from './bizFormat';
+import { naira } from './bizFormat';
 
 /*
  * One request, from choosing a hotel to the stay:
@@ -61,7 +61,6 @@ function MatchCard({ m, rooms, nights, onBook, busy }) {
             </ul>
           )}
           {m.notes.map((x) => <p key={x} className="text-xs text-gray-400 mt-1.5">{x}</p>)}
-          <p className="text-xs text-emerald-700 mt-1.5" title={policyText(m.room_type.free_cancellation_hours, m.room_type.cancellation_fee_percent)}>{policyShort(m.room_type.free_cancellation_hours, m.room_type.cancellation_fee_percent)}</p>
         </div>
         <div className="sm:text-right sm:w-44 flex sm:flex-col justify-between sm:justify-start items-end gap-2">
           <div>
@@ -218,7 +217,7 @@ function Payment({ r, onUpdated }) {
         )}
       </div>
 
-      <PolicyNote reservations={r.reservations} />
+      <PolicyNote />
 
       <div className="mt-5 flex items-baseline justify-between border-t border-gray-100 pt-4">
         <span className="text-gray-600">Total to pay (all fees included)</span>
@@ -310,7 +309,7 @@ function Content() {
                 !quote ? (
                   <p className="text-sm text-gray-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Working out your refund…</p>
                 ) : quote.unavailable ? (
-                  <p className="text-sm text-gray-600">Your refund follows each room's cancellation policy shown above.</p>
+                  <p className="text-sm text-gray-600">Your refund follows the cancellation policy shown above.</p>
                 ) : (
                   <dl className={`rounded-xl px-4 py-3 text-sm space-y-1 ${quote.late ? 'bg-amber-50' : 'bg-emerald-50'}`}>
                     <div className="flex justify-between font-semibold text-gray-950"><dt>You get back</dt><dd className="tabular-nums">{naira(quote.refund_amount)}</dd></div>

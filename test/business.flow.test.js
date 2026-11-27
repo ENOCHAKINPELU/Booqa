@@ -31,7 +31,6 @@ const HOTELS = [
 let free = {};        // room type -> rooms free
 let reservations = {};
 let paymentOk = true;
-let stdPolicy = {};    // Standard rooms' cancellation policy, as HotelOps sends it
 let lateTerms = null;  // what HotelOps says cancelling refunds (per room)
 const mails = [];
 const calls = [];
@@ -47,7 +46,7 @@ function fakeHotelOps(method, path, { query, body } = {}) {
     const std = m[1] === GRA ? GRA_STD : TA_STD;
     const fee = Number(query?.rooms) > 1 ? 0.05 : 0.07;
     const roomList = (type, count) => Array.from({ length: count }, (_, i) => ({ id: `${type}-room-${i + 1}`, room_number: `${String(i + 1).padStart(2, '0')}01` }));
-    const result = [{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, available_rooms: roomList(std, free[std] ?? 0), nights, total_amount: rate * nights, guest_fee_amount: rate * nights * fee, ...stdPolicy }];
+    const result = [{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, available_rooms: roomList(std, free[std] ?? 0), nights, total_amount: rate * nights, guest_fee_amount: rate * nights * fee }];
     if (m[1] === GRA && GRA_DELUXE in free) result.push({ room_type_id: GRA_DELUXE, name: 'Deluxe', capacity_adults: 2, available_count: free[GRA_DELUXE], available_rooms: roomList(GRA_DELUXE, free[GRA_DELUXE]), nights, total_amount: rate * nights * 1.5, guest_fee_amount: rate * nights * 1.5 * fee });
     return Promise.resolve(result);
   }
@@ -313,17 +312,16 @@ test('live availability for a hotel page: rooms free and all-in prices for the d
   await assert.rejects(biz.publicAvailability(GRA, { check_in: inDays(8), check_out: inDays(5) }), { code: 'VALIDATION_ERROR' });
 });
 
-test('cancellation policy: kept on each room, previewed before cancelling, refund follows it', { skip }, async () => {
+test('cancelling a paid booking: refund previewed first, then follows the platform rule', { skip }, async () => {
   free = { [GRA_STD]: 5, [TA_STD]: 5 };
-  stdPolicy = { free_cancellation_hours: 24, cancellation_fee_percent: 50 };
   try {
     const created = await newRequest();
     const held = await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
-    assert.deepEqual(held.reservations.map((x) => [x.free_cancellation_hours, x.cancellation_fee_percent]), [[24, 50], [24, 50]]);
+    assert.equal(held.reservations.length, 2);
     await biz.startPayment(db, s.member, created.id);
     await biz.confirmPayment(db, s.member, created.id);
 
-    // Inside the window, per room: hotel keeps ₦60,000, Booqa keeps ₦6,000.
+    // Within 24 hours, per room: the hotel keeps the first night (₦60,000), Booqa keeps ₦6,000.
     lateTerms = { paid: 126000, late: true, hotel_fee: 60000, booqa_fee_kept: 6000, refund_amount: 60000 };
     const quote = await biz.cancelQuote(db, s.member, created.id);
     assert.deepEqual([quote.refund_amount, quote.hotel_fee, quote.booqa_fee_kept, quote.late, quote.rooms.length], [120000, 120000, 12000, true, 2]);
@@ -338,7 +336,6 @@ test('cancellation policy: kept on each room, previewed before cancelling, refun
     const other = await newRequest();
     assert.equal((await biz.cancelQuote(db, s.member, other.id)).refund_amount, 0);
   } finally {
-    stdPolicy = {};
     lateTerms = null;
   }
 });
