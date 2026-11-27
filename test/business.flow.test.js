@@ -43,7 +43,7 @@ function fakeHotelOps(method, path, { query, body } = {}) {
     const nights = 3;
     const rate = m[1] === GRA ? 60000 : 40000;
     const std = m[1] === GRA ? GRA_STD : TA_STD;
-    const fee = Number(query?.rooms) > 1 ? 0.05 : 0.10;
+    const fee = Number(query?.rooms) > 1 ? 0.05 : 0.07;
     const roomList = (type, count) => Array.from({ length: count }, (_, i) => ({ id: `${type}-room-${i + 1}`, room_number: `${String(i + 1).padStart(2, '0')}01` }));
     const result = [{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, available_rooms: roomList(std, free[std] ?? 0), nights, total_amount: rate * nights, guest_fee_amount: rate * nights * fee }];
     if (m[1] === GRA && GRA_DELUXE in free) result.push({ room_type_id: GRA_DELUXE, name: 'Deluxe', capacity_adults: 2, available_count: free[GRA_DELUXE], available_rooms: roomList(GRA_DELUXE, free[GRA_DELUXE]), nights, total_amount: rate * nights * 1.5, guest_fee_amount: rate * nights * 1.5 * fee });
@@ -54,7 +54,7 @@ function fakeHotelOps(method, path, { query, body } = {}) {
     free[body.room_type_id] -= 1;
     const id = crypto.randomUUID();
     reservations[id] = { id, status: 'pending_payment', room_type_id: body.room_type_id };
-    return Promise.resolve({ id, booking_reference: `HTL-${id.slice(0, 6)}`, guest_name: body.guest_name, total_amount: 120000, guest_fee_amount: 120000 * (body.group_size > 1 ? 0.05 : 0.10), expires_at: new Date(Date.now() + 30 * 60000).toISOString() });
+    return Promise.resolve({ id, booking_reference: `HTL-${id.slice(0, 6)}`, guest_name: body.guest_name, total_amount: 120000, guest_fee_amount: 120000 * (body.group_size > 1 ? 0.05 : 0.07), expires_at: new Date(Date.now() + 30 * 60000).toISOString() });
   }
   if (path === 'reservations/confirm-group-payment') {
     if (!paymentOk) return Promise.reject(new HotelOpsError(400, 'Payment status is "pending"', 'PAYMENT_NOT_SUCCESSFUL'));
@@ -301,6 +301,6 @@ test('each guest with an email gets their own stay details and room reference; t
 test('live availability for a hotel page: rooms free and all-in prices for the dates', { skip }, async () => {
   free = { [GRA_STD]: 3 };
   const rows = await biz.publicAvailability(GRA, { check_in: inDays(5), check_out: inDays(8) });
-  assert.deepEqual(rows.map((x) => [x.room_type_id, x.available_count, x.per_night]), [[GRA_STD, 3, 66000]]);
+  assert.deepEqual(rows.map((x) => [x.room_type_id, x.available_count, x.per_night]), [[GRA_STD, 3, 64200]]);
   await assert.rejects(biz.publicAvailability(GRA, { check_in: inDays(8), check_out: inDays(5) }), { code: 'VALIDATION_ERROR' });
 });

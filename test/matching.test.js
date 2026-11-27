@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { matchHotels, perNightAllIn } from '../lib/matching.js';
 
 // availability rows as HotelOps returns them (2 nights)
-const rt = (id, rate, available, extra = {}, feePercent = 10) => ({
+const rt = (id, rate, available, extra = {}, feePercent = 7) => ({
   room_type_id: id, name: `Room ${id}`, capacity_adults: 2, available_count: available, nights: 2,
   total_amount: rate * 2, guest_fee_amount: rate * 2 * feePercent / 100, ...extra,
 });
@@ -15,8 +15,8 @@ const hotels = [
   { id: 'd', name: 'Lagos Plaza', city: 'Lagos', state: 'Lagos', area: 'Ikeja' },
 ];
 
-test('single room all-in price includes the 10% company fee', () => {
-  assert.equal(perNightAllIn(rt('x', 40000, 1)), 44000);
+test('single room all-in price includes the 7% company fee', () => {
+  assert.equal(perNightAllIn(rt('x', 40000, 1)), 42800);
 });
 
 test('fits: right city + area, enough rooms, within budget, cheapest first', () => {

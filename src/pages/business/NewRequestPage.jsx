@@ -102,7 +102,7 @@ function RoomChoice({ hotelId, form, selections, setSelections, preferredRoomTyp
 
   return (
     <>
-      <p className="text-sm text-gray-500">Enter rooms per category. Total must equal {rooms}. Prices include a 10% Booqa fee for one room or 5% per room for a multi-room booking.</p>
+      <p className="text-sm text-gray-500">Enter rooms per category. Total must equal {rooms}. Prices include a 7% Booqa fee for one room or 5% per room for a multi-room booking.</p>
       <ul className="space-y-2" aria-label="Room categories">
       {rows.map((r) => {
         const count = Number(selections[r.room_type_id]) || 0;
