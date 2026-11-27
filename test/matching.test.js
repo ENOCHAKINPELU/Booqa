@@ -62,3 +62,18 @@ test('hotels with nothing free are left out entirely', () => {
   const { fits, close } = matchHotels({ city: 'Port Harcourt', rooms: 1 }, hotels, avail);
   assert.equal(fits.length + close.length, 0);
 });
+
+test('an area on the map: hotels within 5 km fit whatever their area is called; farther ones say how far', () => {
+  const placed = [
+    { id: 'near', name: 'Bonny View', city: 'Port Harcourt', state: 'Rivers', area: 'Golf Estate', distance_km: 0.4 },
+    { id: 'edge', name: 'Trans-Amadi Residency', city: 'Port Harcourt', state: 'Rivers', area: 'Trans-Amadi', distance_km: 4.8 },
+    { id: 'far', name: 'Rivoli', city: 'Port Harcourt', state: 'Rivers', area: 'Old GRA', distance_km: 9.2 },
+  ];
+  const avail = new Map([['near', [rt('n1', 50000, 5)]], ['edge', [rt('e1', 40000, 5)]], ['far', [rt('f1', 30000, 5)]]]);
+  const { fits } = matchHotels({ city: 'Port Harcourt', area: 'Peter Odili', rooms: 1 }, placed, avail);
+  assert.deepEqual(fits.map((f) => f.hotel.id), ['edge', 'near']);
+  assert.equal(fits[1].hotel.distance_km, 0.4);
+
+  const { close } = matchHotels({ city: 'Port Harcourt', area: 'Peter Odili', rooms: 1 }, [placed[2]], avail);
+  assert.deepEqual(close[0].reasons, ['9.2 km from Peter Odili']);
+});

@@ -15,7 +15,27 @@ export function when(ts) {
   return Number.isNaN(d.getTime()) ? '' : format(d, 'd MMM, HH:mm');
 }
 
-export const INDUSTRIES = ['Oil & Gas', 'Marine & Logistics', 'Engineering & Construction', 'Consulting & Professional Services', 'Training & Events', 'Other'];
+export const INDUSTRIES = [
+  'Banking & Financial Services', 'Consulting & Professional Services', 'Construction & Engineering',
+  'Education', 'Energy, Oil & Gas', 'Government & Public Sector', 'Healthcare & Pharmaceuticals',
+  'Logistics, Maritime & Transport', 'Manufacturing', 'Media & Entertainment', 'NGO & Development',
+  'Real Estate', 'Retail & FMCG', 'Technology & Telecoms', 'Other',
+];
+
+export const COMPANY_SIZES = [
+  { value: '1-10', label: '1–10 people' },
+  { value: '11-50', label: '11–50 people' },
+  { value: '51-200', label: '51–200 people' },
+  { value: '201-1000', label: '201–1,000 people' },
+  { value: '1000+', label: 'More than 1,000' },
+];
+
+export const NIGERIAN_STATES = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta',
+  'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT (Abuja)', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina',
+  'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
+  'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara',
+];
 
 export const EVENT_LABELS = {
   submitted: 'Request submitted',

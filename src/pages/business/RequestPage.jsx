@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Building2, Timer, CreditCard, Landmark, Smartphone, RefreshCw, Info, SearchX } from 'lucide-react';
 import WorkspaceShell from '../../components/business/WorkspaceShell';
 import { biz, errorMessage, errorCode } from '../../services/businessApi';
@@ -46,7 +46,11 @@ function MatchCard({ m, rooms, nights, onBook, busy }) {
       <div className="flex-1 p-4 sm:p-5 flex flex-col sm:flex-row gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-950">{m.hotel.name}</h3>
-          <p className="text-sm text-gray-500">{[m.hotel.area, m.hotel.city].filter(Boolean).join(', ')}</p>
+          <p className="text-sm text-gray-500">
+            {[m.hotel.area, m.hotel.city].filter(Boolean).join(', ')}
+            {m.hotel.distance_km != null && <span className="ml-2 text-xs font-semibold text-navy bg-primary-50 rounded-full px-2 py-0.5">{m.hotel.distance_km < 0.5 ? 'In the area' : `${m.hotel.approximate ? 'About ' : ''}${m.hotel.distance_km} km away`}</span>}
+          </p>
+          <Link to={`/hotels/${m.hotel.id}`} target="_blank" className="text-xs font-medium text-navy hover:underline">See hotel, rooms and facilities</Link>
           <p className="text-sm text-gray-700 mt-2">{m.room_type.name}{m.room_type.bed_type ? ` · ${m.room_type.bed_type}` : ''} · sleeps {m.room_type.capacity_adults}</p>
           {m.reasons.length > 0 && (
             <ul className="mt-2 space-y-1">
@@ -244,6 +248,8 @@ function Payment({ r, onUpdated }) {
 
 function Content() {
   const { id } = useParams();
+  // Set when booking from a hotel page couldn't hold the rooms.
+  const notice = useLocation().state?.notice;
   const [r, setR] = useState(null);
   const [error, setError] = useState('');
   const [cancelling, setCancelling] = useState(false);
@@ -265,9 +271,14 @@ function Content() {
     <div className="max-w-3xl space-y-6">
       <Link to="/business/requests" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> All requests</Link>
       <RequestHeader r={r} />
+      {notice && r.status === 'requested' && (
+        <p className="flex gap-2 text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3" role="status">
+          <Info className="w-5 h-5 flex-shrink-0 text-amber-700" /> {notice}
+        </p>
+      )}
       {r.status === 'requested' && <Matches r={r} onBooked={setR} />}
       {r.status === 'pending' && <Payment r={r} onUpdated={setR} />}
-      <BookingSummary r={r} />
+      <BookingSummary r={r} receipt />
       {error && <p className="text-sm text-red-700 bg-red-50 rounded-xl px-4 py-3" role="alert">{error}</p>}
       <Timeline events={r.events} />
 

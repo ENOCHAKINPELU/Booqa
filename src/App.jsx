@@ -7,8 +7,10 @@ import RequestsPage from './pages/business/RequestsPage';
 import NewRequestPage from './pages/business/NewRequestPage';
 import RequestPage from './pages/business/RequestPage';
 import TeamPage from './pages/business/TeamPage';
-import HotelsPage, { PublicHotelsPage } from './pages/business/HotelsPage';
-import HotelPage, { PublicHotelPage } from './pages/business/HotelPage';
+import CompanyPage from './pages/business/CompanyPage';
+import ReceiptPage from './pages/business/ReceiptPage';
+import { PublicHotelsPage } from './pages/business/HotelsPage';
+import { PublicHotelPage } from './pages/business/HotelPage';
 import { OpsQueuePage, OpsRequestPage } from './pages/business/OpsPages';
 import BizNav from './components/business/BizNav';
 import BizFooter from './components/business/BizFooter';
@@ -60,9 +62,11 @@ function Shell() {
           <Route path="/business/requests" element={<RequestsPage />} />
           <Route path="/business/requests/new" element={<NewRequestPage />} />
           <Route path="/business/requests/:id" element={<RequestPage />} />
+          <Route path="/business/requests/:id/receipt" element={<ReceiptPage />} />
           <Route path="/business/team" element={<TeamPage />} />
-          <Route path="/business/hotels" element={<HotelsPage />} />
-          <Route path="/business/hotels/:id" element={<HotelPage />} />
+          <Route path="/business/company" element={<CompanyPage />} />
+          {/* Hotels live on the public pages only (they work signed in too) */}
+          <Route path="/business/hotels/*" element={<ToPublicHotels />} />
           <Route path="/ops" element={<OpsQueuePage />} />
           <Route path="/ops/requests/:id" element={<OpsRequestPage />} />
 
@@ -90,6 +94,12 @@ function Shell() {
       {!ownLayout && <BizFooter />}
     </div>
   );
+}
+
+// Old workspace hotel links -> the same page under /hotels, keeping the search.
+function ToPublicHotels() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={pathname.replace(/^\/business/, '') + search} replace />;
 }
 
 export default function App() {

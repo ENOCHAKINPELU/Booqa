@@ -13,15 +13,17 @@ import { HotelOpsError } from '../lib/hotelops.js';
  *   enquiries                         POST   public demo / partner form
  *   me                                GET    membership + ops flag
  *   org                               POST   create organization
+ *   org                               PATCH  update company details / own job title
  *   team                              GET, POST
  *   team/:guestId                     PATCH, DELETE
  *   team/invites/:inviteId            DELETE cancel an invitation
  *   public/hotels                     GET    PUBLIC: hotel directory (no sign-in)
  *   public/hotels/:id                 GET    PUBLIC: one hotel
+ *   public/hotels/:id/availability    GET    PUBLIC: live rooms free + prices for dates
  *   hotels                            GET    hotel directory (search: q, city)
  *   hotels/:id                        GET    one hotel: photos, facilities, rooms
  *   dashboard                         GET
- *   requests                          GET, POST
+ *   requests                          GET, POST (POST with hotel_id + room_type_id books straight away)
  *   requests/:id                      GET
  *   requests/:id/matches              GET    hotels that fit (or the closest)
  *   requests/:id/book                 POST   hold every room at one hotel
@@ -36,6 +38,7 @@ const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 const ROUTES = [
   ['GET', /^me$/, (s) => biz.me(db, s)],
   ['POST', /^org$/, (s, b) => biz.createOrganization(db, s, b)],
+  ['PATCH', /^org$/, (s, b) => biz.updateOrganization(db, s, b)],
   ['GET', /^team$/, (s) => biz.listMembers(db, s)],
   ['POST', /^team$/, (s, b) => biz.addMember(db, s, b)],
   ['PATCH', new RegExp(`^team/(${UUID})$`), (s, b, q, m) => biz.updateMember(db, s, m[1], b)],
@@ -45,7 +48,7 @@ const ROUTES = [
   ['GET', /^hotels$/, (s, b, q) => biz.listHotels(db, s, q)],
   ['GET', new RegExp('^hotels/(' + UUID + ')$'), (s, b, q, m) => biz.getHotel(db, s, m[1])],
   ['GET', /^requests$/, (s, b, q) => biz.listRequests(db, s, q)],
-  ['POST', /^requests$/, (s, b) => biz.createRequest(db, s, b), 201],
+  ['POST', /^requests$/, (s, b) => biz.createAndBook(db, s, b), 201],
   ['GET', new RegExp(`^requests/(${UUID})$`), (s, b, q, m) => biz.getRequest(db, s, m[1])],
   ['GET', new RegExp(`^requests/(${UUID})/matches$`), (s, b, q, m) => biz.findMatches(db, s, m[1])],
   ['POST', new RegExp(`^requests/(${UUID})/book$`), (s, b, q, m) => biz.bookHotel(db, s, m[1], b)],
@@ -71,6 +74,8 @@ export default async function handler(req, res) {
     try {
       if (path === 'public/hotels') return ok(res, await biz.publicHotels(query, db));
       if (one) return ok(res, await biz.publicHotel(one[1]));
+      const avail = path.match(new RegExp(`^public/hotels/(${UUID})/availability$`));
+      if (avail) return ok(res, await biz.publicAvailability(avail[1], query));
       return fail(res, 404, 'Not found', 'NOT_FOUND');
     } catch (err) {
       if (err instanceof biz.BizError || err instanceof HotelOpsError) return fail(res, err.status, err.message, err.code);

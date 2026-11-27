@@ -1,5 +1,6 @@
 import React from 'react';
-import { CalendarDays, BedDouble, Users, Briefcase, Wallet, Check, CircleDot, Hotel } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CalendarDays, BedDouble, Users, Briefcase, Wallet, Check, CircleDot, Hotel, FileText } from 'lucide-react';
 import StatusPill from '../../components/business/RequestStatus';
 import { naira, dateRange, when, EVENT_LABELS } from './bizFormat';
 
@@ -53,7 +54,7 @@ export function RequestHeader({ r, showOrg = false }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Guests</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {r.guests.map((g, i) => (
-              <li key={i} className="text-sm bg-gray-50 rounded-lg px-3 py-1.5">{g.name}{g.phone && <span className="text-gray-500"> · {g.phone}</span>}</li>
+              <li key={i} className="text-sm bg-gray-50 rounded-lg px-3 py-1.5">{g.name}{g.phone && <span className="text-gray-500"> · {g.phone}</span>}{g.email && <span className="text-gray-500"> · {g.email}</span>}</li>
             ))}
           </ul>
         </div>
@@ -73,7 +74,7 @@ function Fact({ icon: Icon, label, value }) {
   );
 }
 
-export function BookingSummary({ r }) {
+export function BookingSummary({ r, receipt = false }) {
   if (!r.reservations?.length || !['confirmed', 'checked_in', 'completed'].includes(r.status)) return null;
   return (
     <section className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6">
@@ -82,6 +83,11 @@ export function BookingSummary({ r }) {
         <p className="text-sm text-gray-600">Paid <strong className="text-gray-950">{naira(r.total_cost)}</strong>{r.paid_at && ` · ${when(r.paid_at)}`}</p>
       </div>
       <p className="text-sm text-gray-500 mt-1">Each guest can show their booking reference at the front desk.</p>
+      {receipt && (
+        <Link to={`/business/requests/${r.id}/receipt`} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-navy hover:underline">
+          <FileText className="w-4 h-4" /> Receipt
+        </Link>
+      )}
       <ul className="mt-4 divide-y divide-gray-100 border border-gray-100 rounded-xl">
         {r.reservations.map((res, i) => (
           <li key={res.id} className="flex justify-between gap-3 px-4 py-3 text-sm">

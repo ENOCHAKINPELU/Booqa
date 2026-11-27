@@ -74,6 +74,8 @@ before(async () => {
     sendBookingConfirmed: async (r, to) => { mails.push({ type: 'confirmed', ref: r.reference, to: to.map((x) => x.email).sort() }); },
     sendBookingCancelled: async (r, to, opts) => { mails.push({ type: 'cancelled', ref: r.reference, refunded: opts.refunded }); },
     sendTeamInvite: async (i) => { mails.push({ type: 'invite', email: i.email }); },
+    sendGuestStay: async (r, hotel, guest, res) => { mails.push({ type: 'guest-stay', to: guest.email, ref: res.booking_reference, hotel: hotel?.name }); },
+    sendGuestCancelled: async (r, guest) => { mails.push({ type: 'guest-cancelled', to: guest.email }); },
   });
   const mk = async (key, email, name) => {
     const { rows } = await client.query("INSERT INTO booqa_guests (email, password_hash, full_name, email_verified) VALUES ($1, 'x', $2, true) RETURNING id", [email, name]);
@@ -82,7 +84,7 @@ before(async () => {
   await mk('admin', 'zz-test-admin@example.com', 'Ada Admin');
   await mk('member', 'zz-test-member@example.com', 'Mo Member');
   await mk('outsider', 'zz-test-out@example.com', 'Olu Outsider');
-  await biz.createOrganization(db, s.admin, { name: 'Test Marine Ltd' });
+  await biz.createOrganization(db, s.admin, COMPANY);
   await biz.addMember(db, s.admin, { email: 'zz-test-member@example.com', role: 'member' });
 });
 
@@ -93,6 +95,11 @@ after(async () => {
   await client.query('ROLLBACK');
   await client.end();
 });
+
+const COMPANY = {
+  name: 'Test Marine Ltd', industry: 'Logistics, Maritime & Transport', size: '51-200',
+  city: 'Port Harcourt', state: 'Rivers', phone: '0803 000 0000', billing_email: 'zz-accounts@example.com', job_title: 'HR Manager',
+};
 
 const inDays = (n) => {
   const d = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' }) + 'T00:00:00Z');
@@ -189,7 +196,7 @@ test('one confirmation email per booking, to the booker and the admins; cancelli
   await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
   await biz.startPayment(db, s.member, created.id);
   await biz.confirmPayment(db, s.member, created.id);
-  assert.deepEqual(mails, [{ type: 'confirmed', ref: created.reference, to: ['zz-test-admin@example.com', 'zz-test-member@example.com'] }]);
+  assert.deepEqual(mails, [{ type: 'confirmed', ref: created.reference, to: ['zz-accounts@example.com', 'zz-test-admin@example.com', 'zz-test-member@example.com'] }]);
   await biz.cancelRequest(db, s.member, created.id, { reason: 'Project moved' });
   assert.deepEqual(mails[1], { type: 'cancelled', ref: created.reference, refunded: true });
 
@@ -223,4 +230,69 @@ test('anyone can browse hotels without signing in; the workspace list still need
   const one = await biz.publicHotels({ where: 'trans' });
   assert.deepEqual(one.hotels.map((h) => h.name), ['Trans-Amadi Inn'], 'a hotel name matches first');
   await assert.rejects(biz.listHotels(db, s.outsider, {}), { code: 'NO_ORGANIZATION' });
+});
+
+test('company account needs its details; admins edit them, members only their own job title', { skip }, async () => {
+  const me = await biz.getMembership(db, s.admin);
+  assert.equal(me.size, '51-200');
+  assert.equal(me.city, 'Port Harcourt');
+  assert.equal(me.billing_email, 'zz-accounts@example.com');
+  assert.equal(me.job_title, 'HR Manager');
+
+  // A new company without size, phone or billing email is refused.
+  await assert.rejects(biz.createOrganization(db, s.outsider, { name: 'Half Ltd' }), { code: 'VALIDATION_ERROR' });
+  await assert.rejects(biz.createOrganization(db, s.outsider, { ...COMPANY, phone: 'call me' }), /phone/);
+  await assert.rejects(biz.createOrganization(db, s.outsider, { ...COMPANY, billing_email: 'nope' }), /billing email/);
+
+  const updated = await biz.updateOrganization(db, s.admin, { ...COMPANY, name: 'Test Marine Nigeria Ltd', size: '201-1000' });
+  assert.equal(updated.org_name, 'Test Marine Nigeria Ltd');
+  assert.equal(updated.size, '201-1000');
+
+  await assert.rejects(biz.updateOrganization(db, s.member, { ...COMPANY, name: 'Hijack' }), { code: 'FORBIDDEN' });
+  const mine = await biz.updateOrganization(db, s.member, { job_title: 'Site engineer' });
+  assert.equal(mine.job_title, 'Site engineer');
+  assert.equal(mine.org_name, 'Test Marine Nigeria Ltd');
+});
+
+test('booking from a hotel page: request + held rooms in one step; if the rooms are gone the request stays open', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 1 };
+  const booked = await biz.createAndBook(db, s.member, {
+    city: 'Port Harcourt', area: 'GRA', check_in: inDays(5), check_out: inDays(8), rooms: 2,
+    hotel_id: GRA, room_type_id: GRA_STD, guests: [{ name: 'Chinedu' }, { name: 'Amaka' }],
+  });
+  assert.equal(booked.booked, true);
+  const r = await biz.getRequest(db, s.member, booked.id);
+  assert.equal(r.status, 'pending');
+  assert.equal(r.hotel_id, GRA);
+  assert.equal(r.reservations.length, 2);
+
+  // Two rooms wanted, one free: nothing is held, the request shows other options.
+  const short = await biz.createAndBook(db, s.member, {
+    city: 'Port Harcourt', check_in: inDays(5), check_out: inDays(8), rooms: 2, hotel_id: TA, room_type_id: TA_STD,
+  });
+  assert.equal(short.booked, false);
+  assert.match(short.booking_error, /Only 1 of 2/);
+  assert.equal(free[TA_STD], 1);
+  assert.equal((await biz.getRequest(db, s.member, short.id)).status, 'requested');
+});
+
+test('each guest with an email gets their own stay details and room reference; told again if cancelled', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  await assert.rejects(newRequest({ guests: [{ name: 'Bad', email: 'not-an-email' }] }), /Check the email for Bad/);
+  mails.length = 0;
+  const created = await newRequest({ guests: [{ name: 'Chinedu', email: 'zz-chinedu@example.com' }, { name: 'Amaka' }] });
+  const held = await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
+  await biz.startPayment(db, s.member, created.id);
+  await biz.confirmPayment(db, s.member, created.id);
+  const guestMails = mails.filter((m) => m.type === 'guest-stay');
+  assert.deepEqual(guestMails, [{ type: 'guest-stay', to: 'zz-chinedu@example.com', ref: held.reservations[0].booking_reference, hotel: 'Trans-Amadi Inn' }]);
+  await biz.cancelRequest(db, s.member, created.id, {});
+  assert.deepEqual(mails.filter((m) => m.type === 'guest-cancelled'), [{ type: 'guest-cancelled', to: 'zz-chinedu@example.com' }]);
+});
+
+test('live availability for a hotel page: rooms free and all-in prices for the dates', { skip }, async () => {
+  free = { [GRA_STD]: 3 };
+  const rows = await biz.publicAvailability(GRA, { check_in: inDays(5), check_out: inDays(8) });
+  assert.deepEqual(rows.map((x) => [x.room_type_id, x.available_count, x.per_night]), [[GRA_STD, 3, 64500]]);
+  await assert.rejects(biz.publicAvailability(GRA, { check_in: inDays(8), check_out: inDays(5) }), { code: 'VALIDATION_ERROR' });
 });

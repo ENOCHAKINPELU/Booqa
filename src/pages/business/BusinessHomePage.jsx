@@ -4,14 +4,15 @@ import { Plus, CalendarCheck, Clock, Inbox, Wallet, Loader2, Building2, ArrowRig
 import WorkspaceShell, { PageTitle, useWorkspace } from '../../components/business/WorkspaceShell';
 import StatusPill from '../../components/business/RequestStatus';
 import { biz, errorMessage } from '../../services/businessApi';
-import { naira, dateRange, INDUSTRIES, inputCls } from './bizFormat';
+import { naira, dateRange, inputCls } from './bizFormat';
+import { CompanyFields, emptyCompany } from './CompanyPage';
 import { useAuth } from '../../context/AuthContext';
 
 export function OrgSetup() {
   const { reload } = useWorkspace();
   const { guest } = useAuth();
-  const [name, setName] = useState('');
-  const [industry, setIndustry] = useState('');
+  const [company, setCompany] = useState(() => emptyCompany({}, guest?.email || ''));
+  const [jobTitle, setJobTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,7 +21,7 @@ export function OrgSetup() {
     setSaving(true);
     setError('');
     try {
-      await biz.createOrg({ name, industry });
+      await biz.createOrg({ ...company, job_title: jobTitle });
       await reload();
     } catch (err) {
       setError(errorMessage(err));
@@ -29,29 +30,23 @@ export function OrgSetup() {
   };
 
   return (
-    <div className="max-w-md mx-auto py-10">
+    <div className="max-w-xl mx-auto py-10">
       <span className="w-12 h-12 rounded-xl bg-primary-50 text-navy flex items-center justify-center"><Building2 className="w-6 h-6" /></span>
       <h1 className="mt-5 text-3xl font-bold tracking-tight text-gray-950">Set up your company</h1>
-      <p className="mt-2 text-gray-600">Create your company workspace to start requesting accommodation. You can add colleagues next.</p>
+      <p className="mt-2 text-gray-600">A few details about your company. It takes a minute, and you can add colleagues next.</p>
       <form onSubmit={submit} className="mt-8 space-y-4">
+        <CompanyFields value={company} onChange={setCompany} disabled={saving} />
         <label className="block">
-          <span className="block text-sm font-medium text-gray-800 mb-1.5">Company name</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} required />
-        </label>
-        <label className="block">
-          <span className="block text-sm font-medium text-gray-800 mb-1.5">Industry <span className="font-normal text-gray-400">(optional)</span></span>
-          <select value={industry} onChange={(e) => setIndustry(e.target.value)} className={inputCls}>
-            <option value="">Select</option>
-            {INDUSTRIES.map((i) => <option key={i}>{i}</option>)}
-          </select>
+          <span className="block text-sm font-medium text-gray-800 mb-1.5">Your job title <span className="font-normal text-gray-400">(optional)</span></span>
+          <input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className={inputCls} placeholder="e.g. HR Manager, Travel desk" autoComplete="organization-title" />
         </label>
         {error && <p className="text-sm text-red-700 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
-        <button disabled={saving || !name.trim()} className="w-full bg-navy hover:bg-primary-800 disabled:opacity-50 text-white font-semibold rounded-xl py-3">
-          {saving ? 'Creating…' : 'Create workspace'}
+        <button disabled={saving} className="w-full bg-navy hover:bg-primary-800 disabled:opacity-50 text-white font-semibold rounded-xl py-3">
+          {saving ? 'Creating…' : 'Create company account'}
         </button>
       </form>
       <p className="mt-6 text-sm text-gray-500">
-        Joining a colleague's workspace instead? Ask your company admin to add <strong className="text-gray-800">{guest?.email}</strong> to their team.
+        Joining a colleague's company instead? Ask your company admin to add <strong className="text-gray-800">{guest?.email}</strong> to their team.
       </p>
     </div>
   );
@@ -97,6 +92,13 @@ function Dashboard() {
           </Link>
         )}
       />
+
+      {org.role === 'admin' && !(org.phone && org.billing_email && org.size) && (
+        <Link to="/business/company" className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 hover:border-amber-300">
+          <span className="text-sm text-amber-900"><strong>Complete your company details</strong>: add a company phone and billing email so receipts reach your accounts team.</span>
+          <ArrowRight className="w-4 h-4 text-amber-700 flex-shrink-0" />
+        </Link>
+      )}
 
       {empty ? (
         <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">

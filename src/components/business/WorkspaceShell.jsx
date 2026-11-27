@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, LogOut, LayoutDashboard, ListChecks, Users, Wrench, Building2 } from 'lucide-react';
+import { Loader2, LogOut, LayoutDashboard, ListChecks, Users, Wrench, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { biz } from '../../services/businessApi';
 import { BooqaMark } from './BizNav';
@@ -42,16 +42,16 @@ export default function WorkspaceShell({ children, ops = false }) {
     : [
       { to: '/business', label: 'Overview', icon: LayoutDashboard, end: true },
       { to: '/business/requests', label: 'Requests', icon: ListChecks },
-      { to: '/business/hotels', label: 'Hotels', icon: Building2 },
       ...(org?.role === 'admin' ? [{ to: '/business/team', label: 'Team', icon: Users }] : []),
+      { to: '/business/company', label: 'Company', icon: Building },
     ];
 
   const signOut = async () => { await logout(); navigate('/'); };
 
   return (
     <WorkspaceContext.Provider value={{ me, org, reload }}>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <div className="min-h-screen bg-gray-50 print:bg-white flex flex-col">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30 print:hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-6">
             <Link to={ops ? '/ops' : '/business'} aria-label="Booqa workspace"><BooqaMark /></Link>
             {ops && <span className="text-xs font-bold uppercase tracking-wide text-accent-dark bg-accent-soft rounded-full px-2.5 py-1">Operations</span>}
@@ -91,7 +91,7 @@ export default function WorkspaceShell({ children, ops = false }) {
             </nav>
           )}
         </header>
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">{children}</main>
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 print:p-0 print:max-w-none">{children}</main>
       </div>
     </WorkspaceContext.Provider>
   );

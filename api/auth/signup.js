@@ -10,8 +10,11 @@ export default async function handler(req, res) {
   const { email, password, full_name, phone } = req.body || {};
   const normalizedEmail = String(email || '').trim().toLowerCase();
 
-  if (!normalizedEmail || !password || !full_name) {
-    return fail(res, 400, 'Email, password, and full name are required', 'VALIDATION_ERROR');
+  if (!normalizedEmail || !password || !full_name || !String(phone || '').trim()) {
+    return fail(res, 400, 'Full name, email, phone number and password are required', 'VALIDATION_ERROR');
+  }
+  if (!/^\+?[\d\s()-]{7,20}$/.test(String(phone).trim())) {
+    return fail(res, 400, 'Enter a valid phone number', 'VALIDATION_ERROR');
   }
   if (password.length < 8) {
     return fail(res, 400, 'Password must be at least 8 characters', 'VALIDATION_ERROR');
@@ -28,7 +31,7 @@ export default async function handler(req, res) {
       `INSERT INTO booqa_guests (email, password_hash, full_name, phone)
        VALUES ($1, $2, $3, $4)
        RETURNING id, email, full_name, phone, email_verified, created_at`,
-      [normalizedEmail, passwordHash, full_name, phone || null]
+      [normalizedEmail, passwordHash, String(full_name).trim(), String(phone).trim()]
     );
     const guest = inserted.rows[0];
 
