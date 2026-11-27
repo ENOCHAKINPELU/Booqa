@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { matchHotels, perNightAllIn } from '../lib/matching.js';
 
 // availability rows as HotelOps returns them (2 nights)
-const rt = (id, rate, available, extra = {}) => ({
+const rt = (id, rate, available, extra = {}, feePercent = 10) => ({
   room_type_id: id, name: `Room ${id}`, capacity_adults: 2, available_count: available, nights: 2,
-  total_amount: rate * 2, guest_fee_amount: rate * 2 * 0.075, ...extra,
+  total_amount: rate * 2, guest_fee_amount: rate * 2 * feePercent / 100, ...extra,
 });
 
 const hotels = [
@@ -15,22 +15,22 @@ const hotels = [
   { id: 'd', name: 'Lagos Plaza', city: 'Lagos', state: 'Lagos', area: 'Ikeja' },
 ];
 
-test('all-in price per night includes the service fee', () => {
-  assert.equal(perNightAllIn(rt('x', 40000, 1)), 43000);
+test('single room all-in price includes the 10% company fee', () => {
+  assert.equal(perNightAllIn(rt('x', 40000, 1)), 44000);
 });
 
 test('fits: right city + area, enough rooms, within budget, cheapest first', () => {
   const avail = new Map([
-    ['a', [rt('a1', 40000, 5), rt('a2', 30000, 2)]],   // a2 cheaper but only 2 free -> a1 used for 3 rooms
-    ['b', [rt('b1', 35000, 5)]],
-    ['c', [rt('c1', 38000, 5)]],
-    ['d', [rt('d1', 20000, 9)]],
+    ['a', [rt('a1', 40000, 5, {}, 5), rt('a2', 30000, 2, {}, 5)]],   // a2 cheaper but only 2 free -> a1 used for 3 rooms
+    ['b', [rt('b1', 35000, 5, {}, 5)]],
+    ['c', [rt('c1', 38000, 5, {}, 5)]],
+    ['d', [rt('d1', 20000, 9, {}, 5)]],
   ]);
   const { fits, close } = matchHotels({ city: 'Port Harcourt', area: '', rooms: 3, budget_per_night: 50000 }, hotels, avail);
   assert.deepEqual(fits.map((f) => f.hotel.id), ['b', 'c', 'a']);
   assert.equal(fits.find((f) => f.hotel.id === 'a').room_type.id, 'a1');
   assert.equal(close.length, 0);
-  assert.equal(fits[0].total, 35000 * 2 * 1.075 * 3);
+  assert.equal(fits[0].total, 35000 * 2 * 1.05 * 3);
 });
 
 test('an area filter excludes other areas but keeps hotels that have not listed one (with a note)', () => {
@@ -42,9 +42,9 @@ test('an area filter excludes other areas but keeps hotels that have not listed 
 
 test('nothing fits -> closest hotels with plain reasons', () => {
   const avail = new Map([
-    ['a', [rt('a1', 60000, 5)]],      // over budget
-    ['b', [rt('b1', 30000, 2)]],      // not enough rooms
-    ['d', [rt('d1', 20000, 9)]],      // wrong city
+    ['a', [rt('a1', 60000, 5, {}, 5)]],      // over budget
+    ['b', [rt('b1', 30000, 2, {}, 5)]],      // not enough rooms
+    ['d', [rt('d1', 20000, 9, {}, 5)]],      // wrong city
   ]);
   const { fits, close } = matchHotels({ city: 'Port Harcourt', rooms: 4, budget_per_night: 50000 }, hotels, avail);
   assert.equal(fits.length, 0);
@@ -53,7 +53,7 @@ test('nothing fits -> closest hotels with plain reasons', () => {
   assert.deepEqual(close.map((c) => c.hotel.id), ['b', 'a', 'd']);
   assert.equal(close[0].reasons[0], 'Only 2 of 4 rooms free');
   assert.equal(close[0].rooms_bookable, 2);
-  assert.match(close[1].reasons[0], /^₦14,500 over budget per night$/);
+  assert.match(close[1].reasons[0], /^₦13,000 over budget per night$/);
   assert.equal(close[2].reasons[0], 'In Lagos, not Port Harcourt');
 });
 

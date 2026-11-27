@@ -50,6 +50,7 @@ function Content() {
           <div>
             <BooqaMark />
             <p className="mt-2 text-xs text-gray-500">Business accommodation, managed in one place</p>
+            {r.hotel_logo_url && <img src={r.hotel_logo_url} alt={`${r.hotel_name} logo`} className="mt-4 w-20 h-20 rounded-xl border border-gray-200 bg-white object-contain p-2" />}
           </div>
           <div className="text-right">
             <h1 className="text-2xl font-bold text-gray-950">Receipt</h1>
@@ -79,22 +80,26 @@ function Content() {
               <th className="font-semibold py-2">Room</th>
               <th className="font-semibold py-2">Guest</th>
               <th className="font-semibold py-2">Booking reference</th>
-              <th className="font-semibold py-2 text-right">Amount</th>
+              <th className="font-semibold py-2 text-right">Room amount</th>
+              <th className="font-semibold py-2 text-right">Booqa fee</th>
+              <th className="font-semibold py-2 text-right">Amount paid</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {rooms.map((res, i) => (
               <tr key={res.id}>
-                <td className="py-2.5 text-gray-700">{i + 1} · {r.room_type_name}, {r.nights} night{r.nights === 1 ? '' : 's'}</td>
+                <td className="py-2.5 text-gray-700">Room {res.room_number || i + 1} · {res.room_type_name || r.room_type_name}, {r.nights} night{r.nights === 1 ? '' : 's'}</td>
                 <td className="py-2.5 text-gray-700">{res.guest_name || '—'}</td>
                 <td className="py-2.5 font-mono text-gray-950">{res.booking_reference}</td>
-                <td className="py-2.5 text-right tabular-nums text-gray-950">{naira(perRoom)}</td>
+                <td className="py-2.5 text-right tabular-nums text-gray-700">{naira(res.room_amount ?? perRoom)}</td>
+                <td className="py-2.5 text-right tabular-nums text-gray-700">{naira(res.company_fee ?? 0)}</td>
+                <td className="py-2.5 text-right tabular-nums font-semibold text-gray-950">{naira(res.amount_paid ?? perRoom)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-gray-900">
-              <td colSpan={3} className="pt-3 font-semibold text-gray-950">Total paid (all fees included)</td>
+              <td colSpan={5} className="pt-3 font-semibold text-gray-950">Total paid (all fees included)</td>
               <td className="pt-3 text-right text-lg font-bold tabular-nums text-gray-950">{naira(r.total_cost)}</td>
             </tr>
           </tfoot>

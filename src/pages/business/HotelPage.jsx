@@ -105,7 +105,10 @@ function Content() {
       <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
         <div className="space-y-8 min-w-0">
           <div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight text-gray-950">{hotel.name}</h1>
+            <div className="flex items-center gap-3">
+              {hotel.logo_url && <img src={hotel.logo_url} alt={`${hotel.name} logo`} className="w-14 h-14 rounded-xl border border-gray-200 bg-white object-contain p-1.5" />}
+              <h1 className="font-display text-3xl font-extrabold tracking-tight text-gray-950">{hotel.name}</h1>
+            </div>
             {address && <p className="mt-1 text-gray-600 flex items-start gap-1.5"><MapPin className="w-4 h-4 mt-1 flex-shrink-0" /> {address}</p>}
             {hotel.description && <p className="mt-4 text-gray-700 leading-relaxed">{hotel.description}</p>}
             {hotel.highlights?.length > 0 && (

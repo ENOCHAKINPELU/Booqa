@@ -45,7 +45,10 @@ function MatchCard({ m, rooms, nights, onBook, busy }) {
       </div>
       <div className="flex-1 p-4 sm:p-5 flex flex-col sm:flex-row gap-4">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-950">{m.hotel.name}</h3>
+          <div className="flex items-center gap-2">
+            {m.hotel.logo_url && <img src={m.hotel.logo_url} alt="" className="w-8 h-8 rounded-lg border border-gray-100 object-contain p-1" />}
+            <h3 className="font-semibold text-gray-950">{m.hotel.name}</h3>
+          </div>
           <p className="text-sm text-gray-500">
             {[m.hotel.area, m.hotel.city].filter(Boolean).join(', ')}
             {m.hotel.distance_km != null && <span className="ml-2 text-xs font-semibold text-navy bg-primary-50 rounded-full px-2 py-0.5">{m.hotel.distance_km < 0.5 ? 'In the area' : `${m.hotel.approximate ? 'About ' : ''}${m.hotel.distance_km} km away`}</span>}

@@ -60,30 +60,40 @@ function Guests({ guests, setGuests }) {
 }
 
 /** Room types at the chosen hotel with live availability for the dates. */
-function RoomChoice({ hotelId, form, roomType, setRoomType }) {
+function RoomChoice({ hotelId, form, selections, setSelections, preferredRoomType }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState('');
+  const [autoSelected, setAutoSelected] = useState(false);
   const rooms = Number(form.rooms) || 1;
+  const selectedTotal = Object.values(selections).reduce((sum, n) => sum + (Number(n) || 0), 0);
   const valid = form.check_in && form.check_out && form.check_out > form.check_in;
 
   useEffect(() => {
     if (!valid) return;
     setRows(null);
     setError('');
-    biz.availability(hotelId, { check_in: form.check_in, check_out: form.check_out })
-      .then(setRows)
+    biz.availability(hotelId, { check_in: form.check_in, check_out: form.check_out, rooms })
+      .then((available) => {
+        setRows(available);
+        setSelections((previous) => Object.fromEntries(Object.entries(previous)
+          .filter(([id]) => available.some((r) => r.room_type_id === id))
+          .map(([id, count]) => [id, Math.min(Number(count) || 0, available.find((r) => r.room_type_id === id).available_count)])
+          .filter(([, count]) => count > 0)));
+      })
       .catch((err) => setError(errorMessage(err, 'Could not check availability right now.')));
-  }, [hotelId, form.check_in, form.check_out, valid]);
+  }, [hotelId, form.check_in, form.check_out, rooms, valid]);
 
-  // Keep a sensible choice selected: the requested room type if it has
-  // enough rooms, otherwise the cheapest one that does.
+  // Preselect the requested room type when available, otherwise the cheapest
+  // type with enough rooms. Companies can then divide the rooms across types.
   useEffect(() => {
-    if (!rows?.length) return;
-    const current = rows.find((r) => r.room_type_id === roomType);
-    if (current && current.available_count >= rooms) return;
-    const enough = rows.filter((r) => r.available_count >= rooms).sort((a, b) => a.per_night - b.per_night)[0];
-    if (enough) setRoomType(enough.room_type_id);
-  }, [rows, rooms]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!rows?.length || autoSelected) return;
+    const preferred = rows.find((r) => r.room_type_id === preferredRoomType && r.available_count >= rooms);
+    const cheapest = rows.filter((r) => r.available_count >= rooms).sort((a, b) => a.per_night - b.per_night)[0];
+    const choice = preferred || cheapest;
+    if (choice) setSelections({ [choice.room_type_id]: rooms });
+    else setSelections({});
+    setAutoSelected(true);
+  }, [rows, rooms, autoSelected, preferredRoomType, setSelections]);
 
   if (!valid) return <p className="text-sm text-gray-500">Choose your dates to see which rooms are free.</p>;
   if (error) return <p className="text-sm text-red-700">{error}</p>;
@@ -91,30 +101,39 @@ function RoomChoice({ hotelId, form, roomType, setRoomType }) {
   if (!rows.length) return <p className="text-sm text-amber-800 bg-amber-50 rounded-xl px-4 py-3">No rooms are free here for these dates. Try other dates, or submit and we'll show other hotels that fit.</p>;
 
   return (
-    <ul className="space-y-2" role="radiogroup" aria-label="Room type">
+    <>
+      <p className="text-sm text-gray-500">Enter rooms per category. Total must equal {rooms}. Prices include a 10% Booqa fee for one room or 5% per room for a multi-room booking.</p>
+      <ul className="space-y-2" aria-label="Room categories">
       {rows.map((r) => {
-        const enough = r.available_count >= rooms;
-        const on = r.room_type_id === roomType;
+        const count = Number(selections[r.room_type_id]) || 0;
+        const on = count > 0;
         return (
           <li key={r.room_type_id}>
             <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-colors
-              ${on ? 'border-navy bg-primary-50' : 'border-gray-200 hover:border-primary-300'} ${enough ? '' : 'opacity-60'}`}>
-              <input type="radio" name="room_type" checked={on} onChange={() => setRoomType(r.room_type_id)} disabled={!enough} className="accent-navy" />
+              ${on ? 'border-navy bg-primary-50' : 'border-gray-200 hover:border-primary-300'}`}>
               <span className="flex-1 min-w-0">
                 <span className="block font-medium text-gray-950">{r.name}</span>
-                <span className={`block text-xs ${enough ? 'text-emerald-700' : 'text-amber-700'}`}>
-                  {r.available_count === 0 ? 'Sold out for these dates' : enough ? `${r.available_count} free` : `Only ${r.available_count} free, you need ${rooms}`}
-                </span>
+                <span className="block text-xs text-emerald-700">{r.available_count} free for these dates</span>
               </span>
               <span className="text-right">
                 <span className="block font-semibold text-gray-950 tabular-nums">{naira(r.per_night)}</span>
-                <span className="block text-xs text-gray-500">{naira(r.stay_per_room * rooms)} total</span>
+                <span className="block text-xs text-gray-500">per room / night</span>
+                {count > 0 && <span className="block text-xs text-gray-700">{naira(r.stay_per_room * count)} total</span>}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Rooms</span>
+                <input type="number" min="0" max={r.available_count} value={count} onChange={(e) => setSelections((prev) => ({ ...prev, [r.room_type_id]: Math.max(0, Math.min(r.available_count, Number(e.target.value) || 0)) }))}
+                  className="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-center" aria-label={`${r.name} rooms`} />
               </span>
             </label>
           </li>
         );
       })}
-    </ul>
+      </ul>
+      <p className={`text-sm font-medium ${selectedTotal === rooms ? 'text-emerald-700' : 'text-amber-700'}`}>
+        {selectedTotal} of {rooms} rooms assigned
+      </p>
+    </>
   );
 }
 
@@ -125,7 +144,10 @@ function Content() {
   const hotelId = params.get('hotel_id');
   const [hotel, setHotel] = useState(null);
   const [hotelError, setHotelError] = useState('');
-  const [roomType, setRoomType] = useState(params.get('room_type') || '');
+  const [roomTypeSelections, setRoomTypeSelections] = useState(() => {
+    const id = params.get('room_type');
+    return id ? { [id]: Number(params.get('rooms')) || 1 } : {};
+  });
   const [form, setForm] = useState({
     city: params.get('city') || org?.city || 'Port Harcourt', area: params.get('area') || '',
     check_in: params.get('check_in') || tomorrowISO(),
@@ -155,7 +177,10 @@ function Content() {
     const body = {
       ...form,
       guests: guests.filter((g) => g.name.trim()),
-      ...(direct ? { city: hotel.city, area: hotel.area || '', hotel_id: hotel.id, room_type_id: roomType } : {}),
+      ...(direct ? {
+        city: hotel.city, area: hotel.area || '', hotel_id: hotel.id,
+        room_type_selections: Object.entries(roomTypeSelections).filter(([, count]) => Number(count) > 0).map(([room_type_id, rooms]) => ({ room_type_id, rooms: Number(rooms) })),
+      } : {}),
     };
     try {
       const created = await biz.createRequest(body);
@@ -181,8 +206,8 @@ function Content() {
 
       {direct ? (
         <div className="mt-4 flex items-center gap-4">
-          <div className="w-20 h-16 rounded-xl overflow-hidden bg-primary-100 flex-shrink-0">
-            {hotel.cover_image_url ? <img src={hotel.cover_image_url} alt="" className="w-full h-full object-cover" /> : <Building2 className="w-6 h-6 m-5 text-primary-400" />}
+          <div className="w-20 h-16 rounded-xl overflow-hidden bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center p-1">
+            {hotel.logo_url ? <img src={hotel.logo_url} alt={`${hotel.name} logo`} className="w-full h-full object-contain" /> : hotel.cover_image_url ? <img src={hotel.cover_image_url} alt="" className="w-full h-full object-cover" /> : <Building2 className="w-6 h-6 text-primary-400" />}
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-950">Book at {hotel.name}</h1>
@@ -206,7 +231,7 @@ function Content() {
             </section>
             <section className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6 space-y-4">
               <h2 className="font-semibold text-gray-950">Room</h2>
-              <RoomChoice hotelId={hotel.id} form={form} roomType={roomType} setRoomType={setRoomType} />
+              <RoomChoice hotelId={hotel.id} form={form} selections={roomTypeSelections} setSelections={setRoomTypeSelections} preferredRoomType={params.get('room_type')} />
             </section>
           </>
         ) : (
@@ -236,7 +261,7 @@ function Content() {
 
         {error && <p className="text-sm text-red-700 bg-red-50 rounded-xl px-4 py-3" role="alert">{error}</p>}
         <div className="flex gap-3">
-          <button disabled={saving || (direct && !roomType)} className="bg-navy hover:bg-primary-800 disabled:opacity-50 text-white font-semibold rounded-xl px-6 py-3">
+          <button disabled={saving || (direct && Object.values(roomTypeSelections).reduce((sum, n) => sum + (Number(n) || 0), 0) !== Number(form.rooms))} className="bg-navy hover:bg-primary-800 disabled:opacity-50 text-white font-semibold rounded-xl px-6 py-3">
             {direct ? (saving ? 'Holding rooms…' : 'Hold rooms and pay') : (saving ? 'Finding hotels…' : 'Find hotels')}
           </button>
           <Link to={direct ? `/hotels/${hotel.id}` : '/business'} className="font-semibold text-gray-700 rounded-xl px-6 py-3 hover:bg-white">Cancel</Link>

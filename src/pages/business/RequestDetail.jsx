@@ -35,6 +35,7 @@ export function RequestHeader({ r, showOrg = false }) {
     <div className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
+          {r.hotel_logo_url && <img src={r.hotel_logo_url} alt={`${r.hotel_name} logo`} className="w-14 h-14 rounded-xl border border-gray-200 bg-white object-contain p-1.5 mb-2" />}
           <p className="font-mono text-sm font-semibold text-gray-500">{r.reference}{showOrg && ` · ${r.org_name}`}</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-950">{r.city}{r.area ? `, ${r.area}` : ''}</h1>
         </div>
@@ -79,7 +80,10 @@ export function BookingSummary({ r, receipt = false }) {
   return (
     <section className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-semibold text-gray-950">Booking at {r.hotel_name}</h2>
+        <div className="flex items-center gap-2.5">
+          {r.hotel_logo_url && <img src={r.hotel_logo_url} alt="" className="w-9 h-9 rounded-lg border border-gray-100 object-contain p-1" />}
+          <h2 className="font-semibold text-gray-950">Booking at {r.hotel_name}</h2>
+        </div>
         <p className="text-sm text-gray-600">Paid <strong className="text-gray-950">{naira(r.total_cost)}</strong>{r.paid_at && ` · ${when(r.paid_at)}`}</p>
       </div>
       <p className="text-sm text-gray-500 mt-1">Each guest can show their booking reference at the front desk.</p>
@@ -91,7 +95,7 @@ export function BookingSummary({ r, receipt = false }) {
       <ul className="mt-4 divide-y divide-gray-100 border border-gray-100 rounded-xl">
         {r.reservations.map((res, i) => (
           <li key={res.id} className="flex justify-between gap-3 px-4 py-3 text-sm">
-            <span className="text-gray-700">Room {i + 1}{res.guest_name ? ` · ${res.guest_name}` : ''}</span>
+            <span className="text-gray-700">Room {res.room_number || i + 1}{res.room_type_name ? ` · ${res.room_type_name}` : ''}{res.guest_name ? ` · ${res.guest_name}` : ''}</span>
             <span className="font-mono font-semibold text-gray-950">{res.booking_reference}</span>
           </li>
         ))}

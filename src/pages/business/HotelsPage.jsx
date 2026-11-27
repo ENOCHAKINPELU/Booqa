@@ -7,6 +7,8 @@ import { biz, errorMessage } from '../../services/businessApi';
 import { facilityIcon, FACILITY_LABELS, byFacilityPriority } from '../../utils/facilities';
 import { naira } from './bizFormat';
 
+const HIDDEN_FACILITY_FILTERS = new Set(['power', 'wifi', 'pool', 'restaurant', 'gym']);
+
 /*
  * Hotel directory: every hotel Booqa companies can book, with the photos
  * and facilities each hotel set up in HotelOps. Filters come from what the
@@ -23,7 +25,10 @@ export function HotelCard({ h, href }) {
     <Link to={href} className="group block h-full rounded-2xl bg-white border border-gray-200 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 hover:border-primary-200 transition-all duration-500 ease-out">
       <PhotoCarousel photos={h.photos} alt={h.name} className="h-52" />
       <div className="p-5">
-        <h3 className="font-display text-lg font-bold text-gray-950 group-hover:text-navy transition-colors">{h.name}</h3>
+        <div className="flex items-center gap-2.5">
+          {h.logo_url && <img src={h.logo_url} alt="" className="w-9 h-9 rounded-lg border border-gray-100 object-contain bg-white p-1 flex-shrink-0" loading="lazy" />}
+          <h3 className="font-display text-lg font-bold text-gray-950 group-hover:text-navy transition-colors">{h.name}</h3>
+        </div>
         <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{[h.address, h.area, h.city].filter(Boolean).join(', ') || h.state}</span></p>
         {h.distance_km != null && (
           <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-navy bg-primary-50 rounded-full px-2.5 py-1">
@@ -82,6 +87,7 @@ function Directory() {
     const counts = new Map();
     (hotels || []).forEach((h) => new Set(h.facilities.map((f) => f.key)).forEach((k) => counts.set(k, (counts.get(k) || 0) + 1)));
     return [...counts.entries()]
+      .filter(([key]) => !HIDDEN_FACILITY_FILTERS.has(key))
       .map(([key, count]) => ({ key, count, label: FACILITY_LABELS[key] || hotels.flatMap((h) => h.facilities).find((f) => f.key === key)?.name || key }))
       .sort(byFacilityPriority)
       .slice(0, 10);
