@@ -33,9 +33,8 @@ test('hotels without a map position never appear in a distance search', () => {
   assert.ok(!near.some((h) => h.id === 'lagos'), 'a city search stays within 30 km');
 });
 
-test('nothing within 20 km: the five nearest, flagged as far, city-level ones marked approximate', () => {
+test('nothing within the search radius: distant hotels are not returned', () => {
   const { hotels: near, far } = nearby(hotels, { latitude: 9.0765, longitude: 7.3986, isCity: false }); // Abuja
   assert.equal(far, true);
-  assert.equal(near.length, 5);
-  assert.equal(near.find((h) => h.id === 'lagos')?.approximate ?? false, near.some((h) => h.id === 'lagos'));
+  assert.deepEqual(near, []);
 });

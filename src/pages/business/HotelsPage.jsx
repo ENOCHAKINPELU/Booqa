@@ -134,7 +134,7 @@ function Directory() {
       {hotels && visible.length === 0 && (
         <div className="mt-8 rounded-2xl border border-gray-200 bg-white py-14 text-center text-gray-500">
           <Building2 className="w-8 h-8 mx-auto text-gray-300" />
-          <p className="mt-2">{hotels.length ? `No hotels match${text ? ` "${text}"` : ''}. Try another city or clear a filter.` : 'No hotels are available on Booqa yet.'}</p>
+          <p className="mt-2">{place && far ? `No Booqa hotels are near ${place.label} yet.` : hotels.length ? `No hotels match${text ? ` "${text}"` : ''}. Try another city or clear a filter.` : 'No hotels are available on Booqa yet.'}</p>
         </div>
       )}
       {hotels && visible.length > 0 && (
@@ -142,7 +142,7 @@ function Directory() {
           <p className="mt-6 text-sm text-gray-600">
             {place
               ? (far
-                ? <>No hotels within 20 km of <strong className="text-gray-900">{place.label}</strong> yet. These are the nearest.</>
+                ? <>No hotels within the search area of <strong className="text-gray-900">{place.label}</strong> yet.</>
                 : <>{visible.length} hotel{visible.length === 1 ? '' : 's'} near <strong className="text-gray-900">{place.label}</strong>, most facilities first</>)
               : <>{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}, most facilities first</>}
           </p>
