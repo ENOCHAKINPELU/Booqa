@@ -48,3 +48,15 @@ export const EVENT_LABELS = {
 };
 
 export const inputCls = 'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-primary-500/15 focus:border-primary-600';
+
+/** A room category's cancellation policy in words (same wording as the emails). */
+export function policyText(hours, feePercent) {
+  if (hours == null || !Number(feePercent)) return 'Free cancellation any time';
+  return `Free cancellation until ${hours} hours before check-in. After that the hotel keeps ${Number(feePercent)}% of the room price and the Booqa fee is not refunded.`;
+}
+
+/** Short form for compact lists. */
+export function policyShort(hours, feePercent) {
+  if (hours == null || !Number(feePercent)) return 'Free cancellation any time';
+  return `Free cancellation until ${hours}h before check-in`;
+}

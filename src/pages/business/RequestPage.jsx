@@ -3,8 +3,8 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Building2, Timer, CreditCard, Landmark, Smartphone, RefreshCw, Info, SearchX } from 'lucide-react';
 import WorkspaceShell from '../../components/business/WorkspaceShell';
 import { biz, errorMessage, errorCode } from '../../services/businessApi';
-import { RequestHeader, Timeline, BookingSummary } from './RequestDetail';
-import { naira } from './bizFormat';
+import { RequestHeader, Timeline, BookingSummary, PolicyNote } from './RequestDetail';
+import { naira, policyShort, policyText } from './bizFormat';
 
 /*
  * One request, from choosing a hotel to the stay:
@@ -61,6 +61,7 @@ function MatchCard({ m, rooms, nights, onBook, busy }) {
             </ul>
           )}
           {m.notes.map((x) => <p key={x} className="text-xs text-gray-400 mt-1.5">{x}</p>)}
+          <p className="text-xs text-emerald-700 mt-1.5" title={policyText(m.room_type.free_cancellation_hours, m.room_type.cancellation_fee_percent)}>{policyShort(m.room_type.free_cancellation_hours, m.room_type.cancellation_fee_percent)}</p>
         </div>
         <div className="sm:text-right sm:w-44 flex sm:flex-col justify-between sm:justify-start items-end gap-2">
           <div>
@@ -217,6 +218,8 @@ function Payment({ r, onUpdated }) {
         )}
       </div>
 
+      <PolicyNote reservations={r.reservations} />
+
       <div className="mt-5 flex items-baseline justify-between border-t border-gray-100 pt-4">
         <span className="text-gray-600">Total to pay (all fees included)</span>
         <span className="text-2xl font-bold text-gray-950 tabular-nums">{naira(r.amount_due)}</span>
@@ -258,6 +261,7 @@ function Content() {
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [quote, setQuote] = useState(null);
 
   useEffect(() => { biz.request(id).then(setR).catch((err) => setError(errorMessage(err))); }, [id]);
 
@@ -268,6 +272,13 @@ function Content() {
     setBusy(true);
     setError('');
     try { setR(await biz.cancel(r.id, reason)); setCancelling(false); } catch (err) { setError(errorMessage(err)); } finally { setBusy(false); }
+  };
+
+  // A paid booking: show what comes back before confirming.
+  const startCancelling = () => {
+    setCancelling(true);
+    setQuote(null);
+    if (r.status === 'confirmed') biz.cancelQuote(r.id).then(setQuote).catch(() => setQuote({ unavailable: true }));
   };
 
   return (
@@ -288,13 +299,33 @@ function Content() {
       {r.can_cancel && (
         <div className="rounded-2xl border border-gray-200 bg-white p-5">
           {!cancelling ? (
-            <button onClick={() => setCancelling(true)} className="text-sm font-medium text-red-600 hover:text-red-700">Cancel this request</button>
+            <button onClick={startCancelling} className="text-sm font-medium text-red-600 hover:text-red-700">Cancel this request</button>
           ) : (
             <div className="space-y-3">
               <p className="text-sm font-medium text-gray-900">
-                Cancel {r.reference}?{r.status === 'confirmed' && ' The hotel bookings are cancelled and your payment refunded.'}
+                Cancel {r.reference}?{r.status === 'confirmed' && ' The hotel bookings are cancelled.'}
                 {r.status === 'pending' && ' The held rooms are released.'}
               </p>
+              {r.status === 'confirmed' && (
+                !quote ? (
+                  <p className="text-sm text-gray-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Working out your refund…</p>
+                ) : quote.unavailable ? (
+                  <p className="text-sm text-gray-600">Your refund follows each room's cancellation policy shown above.</p>
+                ) : (
+                  <dl className={`rounded-xl px-4 py-3 text-sm space-y-1 ${quote.late ? 'bg-amber-50' : 'bg-emerald-50'}`}>
+                    <div className="flex justify-between font-semibold text-gray-950"><dt>You get back</dt><dd className="tabular-nums">{naira(quote.refund_amount)}</dd></div>
+                    {quote.late ? (
+                      <>
+                        <div className="flex justify-between text-gray-700"><dt>Hotel cancellation fee</dt><dd className="tabular-nums">{naira(quote.hotel_fee)}</dd></div>
+                        <div className="flex justify-between text-gray-700"><dt>Booqa fee (not refunded)</dt><dd className="tabular-nums">{naira(quote.booqa_fee_kept)}</dd></div>
+                        <p className="text-xs text-amber-800 pt-1">You're inside the hotel's cancellation window.</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-emerald-800">Full refund, Booqa fee included. It goes back to the original payment method within a few working days.</p>
+                    )}
+                  </dl>
+                )
+              )}
               <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (optional)" className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm" />
               <div className="flex gap-2">
                 <button onClick={cancel} disabled={busy} className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg px-4 py-2">

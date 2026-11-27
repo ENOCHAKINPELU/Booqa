@@ -28,6 +28,7 @@ export const biz = {
   startPayment: (id) => call('post', `requests/${id}/pay`),
   confirmPayment: (id) => call('post', `requests/${id}/confirm-payment`),
   cancel: (id, reason) => call('post', `requests/${id}/cancel`, { reason }),
+  cancelQuote: (id) => call('get', `requests/${id}/cancel-quote`),
   ops: {
     requests: (status) => call('get', 'ops/requests', null, status ? { status } : null),
     request: (id) => call('get', `ops/requests/${id}`),

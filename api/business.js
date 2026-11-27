@@ -29,6 +29,7 @@ import { HotelOpsError } from '../lib/hotelops.js';
  *   requests/:id/book                 POST   hold every room at one hotel
  *   requests/:id/pay                  POST   start a payment (new tx_ref)
  *   requests/:id/confirm-payment      POST   confirm once paid
+ *   requests/:id/cancel-quote         GET    what cancelling now would refund
  *   requests/:id/cancel               POST
  *   ops/requests                      GET    Booqa operations team (read-only)
  *   ops/requests/:id                  GET
@@ -54,6 +55,7 @@ const ROUTES = [
   ['POST', new RegExp(`^requests/(${UUID})/book$`), (s, b, q, m) => biz.bookHotel(db, s, m[1], b)],
   ['POST', new RegExp(`^requests/(${UUID})/pay$`), (s, b, q, m) => biz.startPayment(db, s, m[1])],
   ['POST', new RegExp(`^requests/(${UUID})/confirm-payment$`), (s, b, q, m) => biz.confirmPayment(db, s, m[1])],
+  ['GET', new RegExp(`^requests/(${UUID})/cancel-quote$`), (s, b, q, m) => biz.cancelQuote(db, s, m[1])],
   ['POST', new RegExp(`^requests/(${UUID})/cancel$`), (s, b, q, m) => biz.cancelRequest(db, s, m[1], b)],
   ['GET', /^ops\/requests$/, (s, b, q) => biz.opsListRequests(db, s, q)],
   ['GET', new RegExp(`^ops/requests/(${UUID})$`), (s, b, q, m) => biz.opsGetRequest(db, s, m[1])],

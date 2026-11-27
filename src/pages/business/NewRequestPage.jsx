@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X, MapPin, Building2, Loader2 } from 'lucide-react';
 import WorkspaceShell, { useWorkspace } from '../../components/business/WorkspaceShell';
 import { biz, errorMessage } from '../../services/businessApi';
-import { inputCls, naira } from './bizFormat';
+import { inputCls, naira, policyText } from './bizFormat';
 import { OrgSetup } from './BusinessHomePage';
 import { tomorrowISO, defaultCheckOut } from '../../utils/dates';
 
@@ -114,6 +114,7 @@ function RoomChoice({ hotelId, form, selections, setSelections, preferredRoomTyp
               <span className="flex-1 min-w-0">
                 <span className="block font-medium text-gray-950">{r.name}</span>
                 <span className="block text-xs text-emerald-700">{r.available_count} free for these dates</span>
+                <span className="block text-xs text-gray-500">{policyText(r.free_cancellation_hours, r.cancellation_fee_percent)}</span>
               </span>
               <span className="text-right">
                 <span className="block font-semibold text-gray-950 tabular-nums">{naira(r.per_night)}</span>

@@ -31,6 +31,8 @@ const HOTELS = [
 let free = {};        // room type -> rooms free
 let reservations = {};
 let paymentOk = true;
+let stdPolicy = {};    // Standard rooms' cancellation policy, as HotelOps sends it
+let lateTerms = null;  // what HotelOps says cancelling refunds (per room)
 const mails = [];
 const calls = [];
 function fakeHotelOps(method, path, { query, body } = {}) {
@@ -45,7 +47,7 @@ function fakeHotelOps(method, path, { query, body } = {}) {
     const std = m[1] === GRA ? GRA_STD : TA_STD;
     const fee = Number(query?.rooms) > 1 ? 0.05 : 0.07;
     const roomList = (type, count) => Array.from({ length: count }, (_, i) => ({ id: `${type}-room-${i + 1}`, room_number: `${String(i + 1).padStart(2, '0')}01` }));
-    const result = [{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, available_rooms: roomList(std, free[std] ?? 0), nights, total_amount: rate * nights, guest_fee_amount: rate * nights * fee }];
+    const result = [{ room_type_id: std, name: 'Standard', capacity_adults: 2, available_count: free[std] ?? 0, available_rooms: roomList(std, free[std] ?? 0), nights, total_amount: rate * nights, guest_fee_amount: rate * nights * fee, ...stdPolicy }];
     if (m[1] === GRA && GRA_DELUXE in free) result.push({ room_type_id: GRA_DELUXE, name: 'Deluxe', capacity_adults: 2, available_count: free[GRA_DELUXE], available_rooms: roomList(GRA_DELUXE, free[GRA_DELUXE]), nights, total_amount: rate * nights * 1.5, guest_fee_amount: rate * nights * 1.5 * fee });
     return Promise.resolve(result);
   }
@@ -61,8 +63,14 @@ function fakeHotelOps(method, path, { query, body } = {}) {
     body.reservation_ids.forEach((id) => { reservations[id].status = 'confirmed'; });
     return Promise.resolve([]);
   }
+  m = path.match(/^reservations\/([^/]+)\/cancellation-quote$/);
+  if (m) return Promise.resolve(lateTerms);
   m = path.match(/^reservations\/([^/]+)\/cancel$/);
-  if (m) { reservations[m[1]].status = 'cancelled'; free[reservations[m[1]].room_type_id] += 1; return Promise.resolve({}); }
+  if (m) {
+    const wasPaid = reservations[m[1]].status === 'confirmed';
+    reservations[m[1]].status = 'cancelled'; free[reservations[m[1]].room_type_id] += 1;
+    return Promise.resolve(wasPaid && lateTerms ? { cancellation: lateTerms } : {});
+  }
   m = path.match(/^reservations\/([^/]+)\/status$/);
   if (m) return Promise.resolve({ status: reservations[m[1]].status });
   return Promise.reject(new Error(`unexpected ${method} ${path}`));
@@ -77,7 +85,7 @@ before(async () => {
   biz._setHotelOps(fakeHotelOps);
   biz._setMailer({
     sendBookingConfirmed: async (r, to) => { mails.push({ type: 'confirmed', ref: r.reference, to: to.map((x) => x.email).sort() }); },
-    sendBookingCancelled: async (r, to, opts) => { mails.push({ type: 'cancelled', ref: r.reference, refunded: opts.refunded }); },
+    sendBookingCancelled: async (r, to, opts) => { mails.push({ type: 'cancelled', ref: r.reference, refunded: opts.refunded, ...(opts.refund ? { refund: opts.refund } : {}) }); },
     sendTeamInvite: async (i) => { mails.push({ type: 'invite', email: i.email }); },
     sendGuestStay: async (r, hotel, guest, res) => { mails.push({ type: 'guest-stay', to: guest.email, ref: res.booking_reference, hotel: hotel?.name }); },
     sendGuestCancelled: async (r, guest) => { mails.push({ type: 'guest-cancelled', to: guest.email }); },
@@ -303,4 +311,34 @@ test('live availability for a hotel page: rooms free and all-in prices for the d
   const rows = await biz.publicAvailability(GRA, { check_in: inDays(5), check_out: inDays(8) });
   assert.deepEqual(rows.map((x) => [x.room_type_id, x.available_count, x.per_night]), [[GRA_STD, 3, 64200]]);
   await assert.rejects(biz.publicAvailability(GRA, { check_in: inDays(8), check_out: inDays(5) }), { code: 'VALIDATION_ERROR' });
+});
+
+test('cancellation policy: kept on each room, previewed before cancelling, refund follows it', { skip }, async () => {
+  free = { [GRA_STD]: 5, [TA_STD]: 5 };
+  stdPolicy = { free_cancellation_hours: 24, cancellation_fee_percent: 50 };
+  try {
+    const created = await newRequest();
+    const held = await biz.bookHotel(db, s.member, created.id, { hotel_id: TA, room_type_id: TA_STD });
+    assert.deepEqual(held.reservations.map((x) => [x.free_cancellation_hours, x.cancellation_fee_percent]), [[24, 50], [24, 50]]);
+    await biz.startPayment(db, s.member, created.id);
+    await biz.confirmPayment(db, s.member, created.id);
+
+    // Inside the window, per room: hotel keeps ₦60,000, Booqa keeps ₦6,000.
+    lateTerms = { paid: 126000, late: true, hotel_fee: 60000, booqa_fee_kept: 6000, refund_amount: 60000 };
+    const quote = await biz.cancelQuote(db, s.member, created.id);
+    assert.deepEqual([quote.refund_amount, quote.hotel_fee, quote.booqa_fee_kept, quote.late, quote.rooms.length], [120000, 120000, 12000, true, 2]);
+
+    mails.length = 0;
+    const r = await biz.cancelRequest(db, s.member, created.id, { reason: 'Trip off' });
+    assert.equal(r.status, 'cancelled');
+    assert.match(r.events.at(-1).note, /Trip off · Refund ₦120,000 \(hotel cancellation fee ₦120,000, Booqa fee ₦12,000 kept\)/);
+    assert.deepEqual(mails.find((x) => x.type === 'cancelled').refund, { paid: 252000, refund_amount: 120000, hotel_fee: 120000, booqa_fee_kept: 12000, late: true });
+
+    // A request that was never paid has nothing to preview.
+    const other = await newRequest();
+    assert.equal((await biz.cancelQuote(db, s.member, other.id)).refund_amount, 0);
+  } finally {
+    stdPolicy = {};
+    lateTerms = null;
+  }
 });
