@@ -44,7 +44,7 @@ function Guests({ guests, setGuests }) {
         {guests.map((g, i) => (
           <div key={i} className="flex gap-2 items-start">
             <span className="w-6 pt-2.5 text-xs font-semibold text-gray-400 flex-shrink-0">{i + 1}</span>
-            <div className="flex-1 grid sm:grid-cols-3 gap-2">
+            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input value={g.name} onChange={update(i, 'name')} className={inputCls} placeholder="Full name" aria-label={`Guest ${i + 1} name`} />
               <input type="tel" value={g.phone} onChange={update(i, 'phone')} className={inputCls} placeholder="Phone" aria-label={`Guest ${i + 1} phone`} />
               <input type="email" value={g.email} onChange={update(i, 'email')} className={inputCls} placeholder="Email" aria-label={`Guest ${i + 1} email`} />
@@ -107,25 +107,31 @@ function RoomChoice({ hotelId, form, selections, setSelections, preferredRoomTyp
       {rows.map((r) => {
         const count = Number(selections[r.room_type_id]) || 0;
         const on = count > 0;
+        const setCount = (n) => setSelections((prev) => ({ ...prev, [r.room_type_id]: Math.max(0, Math.min(r.available_count, Number(n) || 0)) }));
+        const step = 'w-10 h-10 rounded-lg border border-gray-300 bg-white text-lg font-semibold text-gray-700 hover:border-navy disabled:opacity-40';
         return (
-          <li key={r.room_type_id}>
-            <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-colors
-              ${on ? 'border-navy bg-primary-50' : 'border-gray-200 hover:border-primary-300'}`}>
-              <span className="flex-1 min-w-0">
-                <span className="block font-medium text-gray-950">{r.name}</span>
-                <span className="block text-xs text-emerald-700">{r.available_count} free for these dates</span>
+          // Phones: name and price on top, the room counter below; one row from sm up.
+          <li key={r.room_type_id}
+            className={`grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-3 rounded-xl border px-4 py-3 transition-colors sm:flex
+              ${on ? 'border-navy bg-primary-50' : 'border-gray-200'}`}>
+            <span className="min-w-0 sm:flex-1">
+              <span className="block font-medium text-gray-950">{r.name}</span>
+              <span className="block text-xs text-emerald-700">{r.available_count} free for these dates</span>
+            </span>
+            <span className="text-right">
+              <span className="block font-semibold text-gray-950 tabular-nums">{naira(r.per_night)}</span>
+              <span className="block text-xs text-gray-500">per room / night</span>
+              {count > 0 && <span className="block text-xs text-gray-700">{naira(r.stay_per_room * count)} total</span>}
+            </span>
+            <span className="col-span-2 flex items-center justify-between gap-2 sm:justify-end">
+              <span className="text-xs text-gray-500">Rooms</span>
+              <span className="flex items-center gap-1.5">
+                <button type="button" onClick={() => setCount(count - 1)} disabled={count === 0} className={step} aria-label={`One fewer ${r.name}`}>−</button>
+                <input type="number" inputMode="numeric" min="0" max={r.available_count} value={count} onChange={(e) => setCount(e.target.value)}
+                  className="w-14 h-10 rounded-lg border border-gray-300 text-center" aria-label={`${r.name} rooms`} />
+                <button type="button" onClick={() => setCount(count + 1)} disabled={count >= r.available_count} className={step} aria-label={`One more ${r.name}`}>+</button>
               </span>
-              <span className="text-right">
-                <span className="block font-semibold text-gray-950 tabular-nums">{naira(r.per_night)}</span>
-                <span className="block text-xs text-gray-500">per room / night</span>
-                {count > 0 && <span className="block text-xs text-gray-700">{naira(r.stay_per_room * count)} total</span>}
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">Rooms</span>
-                <input type="number" min="0" max={r.available_count} value={count} onChange={(e) => setSelections((prev) => ({ ...prev, [r.room_type_id]: Math.max(0, Math.min(r.available_count, Number(e.target.value) || 0)) }))}
-                  className="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-center" aria-label={`${r.name} rooms`} />
-              </span>
-            </label>
+            </span>
           </li>
         );
       })}

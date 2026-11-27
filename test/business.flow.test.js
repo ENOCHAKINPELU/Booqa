@@ -165,6 +165,9 @@ test('match -> book every room -> pay -> follow the hotel to completed', { skip 
   const dash = await biz.dashboard(db, s.admin);
   assert.equal(dash.spend_by_project[0].project, 'Onne Base');
   assert.equal(dash.spend_by_project[0].spend, 252000);
+  // The count and the list of upcoming stays are separate fields (the list once overwrote the count).
+  assert.equal(typeof dash.upcoming_count, 'number');
+  assert.ok(Array.isArray(dash.upcoming));
 });
 
 test('nothing fits -> closest hotels with reasons; partial booking holds what is free', { skip }, async () => {

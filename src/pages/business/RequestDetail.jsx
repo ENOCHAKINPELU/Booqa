@@ -106,7 +106,7 @@ export function BookingSummary({ r, receipt = false }) {
         {r.reservations.map((res, i) => (
           <li key={res.id} className="flex justify-between gap-3 px-4 py-3 text-sm">
             <span className="text-gray-700">Room {res.room_number || i + 1}{res.room_type_name ? ` · ${res.room_type_name}` : ''}{res.guest_name ? ` · ${res.guest_name}` : ''}</span>
-            <span className="font-mono font-semibold text-gray-950">{res.booking_reference}</span>
+            <span className="font-mono font-semibold text-gray-950 whitespace-nowrap">{res.booking_reference}</span>
           </li>
         ))}
       </ul>

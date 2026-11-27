@@ -38,21 +38,21 @@ function Content() {
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center justify-between gap-3 mb-6 print:hidden">
-        <Link to={`/business/requests/${r.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> Back to booking</Link>
-        <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl px-5 py-2.5">
-          <Printer className="w-4 h-4" /> Print or save as PDF
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print:hidden">
+        <Link to={`/business/requests/${r.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy whitespace-nowrap"><ArrowLeft className="w-4 h-4" /> Back to booking</Link>
+        <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl px-4 py-2.5 whitespace-nowrap">
+          <Printer className="w-4 h-4" /> <span className="sm:hidden">Save as PDF</span><span className="hidden sm:inline">Print or save as PDF</span>
         </button>
       </div>
 
-      <article className="rounded-2xl bg-white border border-gray-200 p-6 sm:p-10 print:border-0 print:p-0">
+      <article className="rounded-2xl bg-white border border-gray-200 p-5 sm:p-10 print:border-0 print:p-0">
         <header className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <BooqaMark />
             <p className="mt-2 text-xs text-gray-500">Business accommodation, managed in one place</p>
             {r.hotel_logo_url && <img src={r.hotel_logo_url} alt={`${r.hotel_name} logo`} className="mt-4 w-20 h-20 rounded-xl border border-gray-200 bg-white object-contain p-2" />}
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <h1 className="text-2xl font-bold text-gray-950">Receipt</h1>
             <p className="font-mono text-sm text-gray-600 mt-1">{r.reference}</p>
             <p className="text-sm text-gray-600">Paid {when(r.paid_at)}</p>
@@ -74,7 +74,29 @@ function Content() {
           </div>
         </div>
 
-        <table className="mt-8 w-full text-sm">
+        {/* Phones: one block per room. The table is for wider screens and printing. */}
+        <ul className="mt-8 divide-y divide-gray-100 border-y border-gray-200 sm:hidden print:hidden">
+          {rooms.map((res, i) => (
+            <li key={res.id} className="py-3 text-sm">
+              <div className="flex justify-between gap-3">
+                <span className="font-medium text-gray-950">Room {res.room_number || i + 1} · {res.room_type_name || r.room_type_name}</span>
+                <span className="font-mono text-gray-950 whitespace-nowrap">{res.booking_reference}</span>
+              </div>
+              <p className="text-gray-600">{res.guest_name || 'Guest not named'} · {r.nights} night{r.nights === 1 ? '' : 's'}</p>
+              <dl className="mt-2 space-y-0.5 text-gray-700">
+                <div className="flex justify-between"><dt>Room</dt><dd className="tabular-nums">{naira(res.room_amount ?? perRoom)}</dd></div>
+                <div className="flex justify-between"><dt>Booqa fee</dt><dd className="tabular-nums">{naira(res.company_fee ?? 0)}</dd></div>
+                <div className="flex justify-between font-semibold text-gray-950"><dt>Paid</dt><dd className="tabular-nums">{naira(res.amount_paid ?? perRoom)}</dd></div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 flex items-baseline justify-between gap-3 sm:hidden print:hidden">
+          <span className="font-semibold text-gray-950">Total paid</span>
+          <span className="text-lg font-bold tabular-nums text-gray-950">{naira(r.total_cost)}</span>
+        </div>
+
+        <table className="mt-8 w-full text-sm hidden sm:table print:table">
           <thead>
             <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
               <th className="font-semibold py-2">Room</th>

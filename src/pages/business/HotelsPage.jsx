@@ -29,7 +29,7 @@ export function HotelCard({ h, href }) {
           {h.logo_url && <img src={h.logo_url} alt="" className="w-9 h-9 rounded-lg border border-gray-100 object-contain bg-white p-1 flex-shrink-0" loading="lazy" />}
           <h3 className="font-display text-lg font-bold text-gray-950 group-hover:text-navy transition-colors">{h.name}</h3>
         </div>
-        <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{[h.address, h.area, h.city].filter(Boolean).join(', ') || h.state}</span></p>
+        <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5 min-w-0"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate min-w-0">{[h.address, h.area, h.city].filter(Boolean).join(', ') || h.state}</span></p>
         {h.distance_km != null && (
           <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-navy bg-primary-50 rounded-full px-2.5 py-1">
             {h.distance_km < 0.5 ? 'Right here' : `${h.approximate ? 'About ' : ''}${h.distance_km} km away`}
@@ -152,8 +152,8 @@ function Directory() {
                 : <>{visible.length} hotel{visible.length === 1 ? '' : 's'} near <strong className="text-gray-900">{place.label}</strong>, most facilities first</>)
               : <>{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}, most facilities first</>}
           </p>
-          <ul className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {visible.map((h) => <li key={h.id}><HotelCard h={h} href={hrefFor(h)} /></li>)}
+          <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {visible.map((h) => <li key={h.id} className="min-w-0"><HotelCard h={h} href={hrefFor(h)} /></li>)}
           </ul>
         </>
       )}

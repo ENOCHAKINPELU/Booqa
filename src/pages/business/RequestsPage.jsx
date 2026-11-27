@@ -68,7 +68,7 @@ function Content() {
       <PageTitle
         title="Requests"
         action={(
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {rows?.length > 0 && (
               <button onClick={() => downloadCsv(rows, status)} className="inline-flex items-center gap-2 border border-gray-300 bg-white hover:border-navy text-gray-800 font-semibold rounded-xl px-4 py-2.5">
                 <Download className="w-4 h-4" /> Export CSV
@@ -90,7 +90,30 @@ function Content() {
         </div>
       )}
       {rows && rows.length > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white overflow-x-auto">
+        // Phones: one tappable card per request.
+        <ul className="sm:hidden space-y-3">
+          {rows.map((r) => (
+            <li key={r.id}>
+              <Link to={`/business/requests/${r.id}`} className="block rounded-2xl border border-gray-200 bg-white p-4 active:bg-gray-50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-mono text-sm font-semibold text-navy">{r.reference}</p>
+                    <p className="mt-0.5 font-medium text-gray-950 truncate">{r.hotel_name || [r.city, r.area].filter(Boolean).join(', ')}</p>
+                  </div>
+                  <StatusPill status={r.status} />
+                </div>
+                <p className="mt-2 text-sm text-gray-600">{dateRange(r.check_in, r.check_out)} · {r.rooms} room{r.rooms === 1 ? '' : 's'}</p>
+                <div className="mt-1 flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-gray-500 truncate">{r.project || 'No project'}</span>
+                  {r.total_cost ? <span className="font-semibold tabular-nums text-gray-950">{naira(r.total_cost)}</span> : null}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {rows && rows.length > 0 && (
+        <div className="hidden sm:block rounded-2xl border border-gray-200 bg-white overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">

@@ -13,5 +13,5 @@ export const REQUEST_STATUS = {
 
 export default function RequestStatus({ status }) {
   const s = REQUEST_STATUS[status] || { label: status, cls: 'bg-gray-100 text-gray-700' };
-  return <span className={`inline-flex items-center text-xs font-semibold rounded-full px-2.5 py-1 whitespace-nowrap ${s.cls}`}>{s.label}</span>;
+  return <span className={`inline-flex flex-shrink-0 items-center text-xs font-semibold rounded-full px-2.5 py-1 whitespace-nowrap ${s.cls}`}>{s.label}</span>;
 }

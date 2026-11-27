@@ -113,12 +113,12 @@ function Dashboard() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Kpi icon={Clock} label="Awaiting payment" value={data.awaiting_payment} tone="warn" to="/business/requests?status=pending" />
-            <Kpi icon={CalendarCheck} label="Upcoming stays" value={data.upcoming} />
+            <Kpi icon={CalendarCheck} label="Upcoming stays" value={data.upcoming_count} />
             <Kpi icon={Inbox} label="Choosing a hotel" value={data.choosing} to="/business/requests?status=requested" />
             <Kpi icon={Wallet} label="Spend this month" value={naira(data.month_spend)} />
           </div>
 
-          <div className="mt-6 grid lg:grid-cols-[1.4fr_1fr] gap-6">
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6">
             <section className="rounded-2xl border border-gray-200 bg-white">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 className="font-semibold text-gray-950">Recent requests</h2>

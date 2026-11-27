@@ -15,6 +15,11 @@
   body {
     @apply font-sans bg-gray-50 text-gray-900 antialiased;
   }
+  /* Phones: nothing (an off-screen menu, a slide-in animation) may make the
+     page scroll sideways. clip, unlike hidden, keeps sticky headers working. */
+  html, body {
+    overflow-x: clip;
+  }
   /* Respect people who turn motion off: no smooth scroll, no animations. */
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }

@@ -102,7 +102,7 @@ function Content() {
       <Link to={backTo} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> All hotels</Link>
       <Gallery hotel={hotel} />
 
-      <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
         <div className="space-y-8 min-w-0">
           <div>
             <div className="flex items-center gap-3">
@@ -154,6 +154,18 @@ function Content() {
             {hotel.transportation_info && <p className="text-gray-600"><span className="font-medium text-gray-800">Getting there: </span>{hotel.transportation_info}</p>}
           </div>
         </aside>
+      </div>
+
+      {/* Phones: price and "Book" stay in reach while scrolling the rooms. */}
+      <div className="lg:hidden h-20" aria-hidden="true" />
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-white/95 backdrop-blur border-t border-gray-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          {hotel.room_types[0] && <p className="text-sm text-gray-600 truncate">From <span className="font-bold text-gray-950">{naira(hotel.room_types[0].per_night)}</span> / night</p>}
+          <p className="text-xs text-emerald-700 truncate">{CANCELLATION_SHORT}</p>
+        </div>
+        <Link to={bookLink} className="flex-shrink-0 inline-flex items-center gap-1.5 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl px-5 py-3">
+          <Plus className="w-4 h-4" /> Book rooms
+        </Link>
       </div>
     </div>
   );

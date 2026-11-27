@@ -196,13 +196,14 @@ function HotelsShowcase() {
         </Link>
       </Reveal>
       {!hotels ? (
-        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-busy="true">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-busy="true">
           {[0, 1, 2].map((i) => <div key={i} className="h-80 rounded-2xl bg-gray-100 animate-pulse" />)}
         </div>
       ) : (
-        <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <ul className="mt-10 -mx-4 px-4 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-4 pb-2 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="Hotels - swipe to see more">
           {[...hotels].sort((a, b) => (b.facilities?.length || 0) - (a.facilities?.length || 0)).slice(0, 6).map((h, i) => (
-            <Reveal as="li" key={h.id} delay={(i % 3) * 100}>
+            <Reveal as="li" key={h.id} delay={(i % 3) * 100} className="min-w-0 w-[82%] flex-shrink-0 snap-start sm:w-auto">
               <HotelCard h={h} href={`/hotels/${h.id}`} />
             </Reveal>
           ))}
@@ -282,7 +283,7 @@ export default function BusinessLandingPage() {
             <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-4">
               {INDUSTRIES.map((ind, i) => (
                 <Reveal key={ind.key} delay={i * 80}
-                  className={`group relative rounded-3xl overflow-hidden aspect-[3/4] ${i === 4 ? 'col-span-2 md:col-span-1 aspect-[16/9] md:aspect-[3/4]' : ''}`}>
+                  className={`group relative rounded-3xl overflow-hidden ${i === 4 ? 'col-span-2 md:col-span-1 aspect-[16/9] md:aspect-[3/4]' : 'aspect-[3/4]'}`}>
                   <img src={BIZ_IMAGES.industries[ind.key]} alt="" loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950/85 via-gray-950/10 to-transparent" aria-hidden="true" />
