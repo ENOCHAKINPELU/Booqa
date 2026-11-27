@@ -62,7 +62,7 @@ function RoomType({ rt, bookHref, signedIn }) {
             <p className="text-xs text-gray-500">per room / night</p>
             <p className="text-[11px] text-gray-400">Includes all fees</p>
             <Link to={bookHref} className="mt-3 inline-flex items-center justify-center bg-navy hover:bg-primary-800 text-white text-sm font-semibold rounded-lg px-4 py-2 whitespace-nowrap">
-              {signedIn ? 'Book this room' : 'Sign in to book'}
+              {signedIn ? 'Book this room' : 'Book'}
             </Link>
           </div>
         </div>

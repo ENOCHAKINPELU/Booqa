@@ -87,7 +87,11 @@ function Directory() {
       .slice(0, 10);
   }, [hotels]);
 
-  const visible = useMemo(() => (hotels || []).filter((h) => selected.every((k) => h.facilities.some((f) => f.key === k))), [hotels, selected]);
+  const visible = useMemo(() => (hotels || [])
+    .filter((h) => selected.every((k) => h.facilities.some((f) => f.key === k)))
+    .map((hotel, index) => ({ hotel, index }))
+    .sort((a, b) => (b.hotel.facilities?.length || 0) - (a.hotel.facilities?.length || 0) || a.index - b.index)
+    .map(({ hotel }) => hotel), [hotels, selected]);
 
   const toggle = (key) => set({ facility: (selected.includes(key) ? selected.filter((k) => k !== key) : [...selected, key]).join(',') });
   // Carry the search to the hotel page.
@@ -139,8 +143,8 @@ function Directory() {
             {place
               ? (far
                 ? <>No hotels within 20 km of <strong className="text-gray-900">{place.label}</strong> yet. These are the nearest.</>
-                : <>{visible.length} hotel{visible.length === 1 ? '' : 's'} near <strong className="text-gray-900">{place.label}</strong>, nearest first</>)
-              : <>{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}</>}
+                : <>{visible.length} hotel{visible.length === 1 ? '' : 's'} near <strong className="text-gray-900">{place.label}</strong>, most facilities first</>)
+              : <>{visible.length} hotel{visible.length === 1 ? '' : 's'}{text ? ` for "${text}"` : ''}, most facilities first</>}
           </p>
           <ul className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {visible.map((h) => <li key={h.id}><HotelCard h={h} href={hrefFor(h)} /></li>)}

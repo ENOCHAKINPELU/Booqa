@@ -201,7 +201,7 @@ function HotelsShowcase() {
         </div>
       ) : (
         <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {hotels.slice(0, 6).map((h, i) => (
+          {[...hotels].sort((a, b) => (b.facilities?.length || 0) - (a.facilities?.length || 0)).slice(0, 6).map((h, i) => (
             <Reveal as="li" key={h.id} delay={(i % 3) * 100}>
               <HotelCard h={h} href={`/hotels/${h.id}`} />
             </Reveal>
