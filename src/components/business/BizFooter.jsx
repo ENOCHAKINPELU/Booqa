@@ -43,7 +43,9 @@ export default function BizFooter() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-white">Get started</p>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><Link to="/request-demo" className="hover:text-white">Request a Corporate Demo</Link></li>
+              <li><Link to="/hotels" className="hover:text-white">Find hotels</Link></li>
+              <li><Link to="/signup?redirect=%2Fbusiness" className="hover:text-white">Create a company account</Link></li>
+              <li><Link to="/request-demo?topic=talk" className="hover:text-white">Talk to our team</Link></li>
               <li><Link to="/become-a-partner" className="hover:text-white">Become a Partner</Link></li>
             </ul>
           </div>

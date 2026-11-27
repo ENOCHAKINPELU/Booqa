@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, MapPin, Clock, Navigation, Users, BedDouble, Maximize2, Plus, Image as Images } from 'lucide-react';
 import WorkspaceShell from '../../components/business/WorkspaceShell';
 import HotelFacilities from '../../components/HotelFacilities';
 import MediaGallery from '../../components/MediaGallery';
 import { biz, errorMessage } from '../../services/businessApi';
 import { naira } from './bizFormat';
+import { useAuth } from '../../context/AuthContext';
 
 /*
  * One hotel, as it set itself up in HotelOps: photos, description,
@@ -69,21 +70,30 @@ function RoomType({ rt }) {
   );
 }
 
-function Content() {
+function Content({ publicMode = false }) {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const { guest } = useAuth();
   const [hotel, setHotel] = useState(null);
   const [error, setError] = useState('');
-  useEffect(() => { biz.hotel(id).then(setHotel).catch((err) => setError(errorMessage(err, 'This hotel is not available.'))); }, [id]);
+  useEffect(() => { (publicMode ? biz.publicHotel(id) : biz.hotel(id)).then(setHotel).catch((err) => setError(errorMessage(err, 'This hotel is not available.'))); }, [id, publicMode]);
 
   if (!hotel && !error) return <div className="py-20 flex justify-center text-gray-400"><Loader2 className="w-6 h-6 animate-spin" /></div>;
   if (!hotel) return <p className="text-red-700">{error}</p>;
 
   const address = [hotel.address, hotel.area, hotel.city, hotel.state].filter(Boolean).join(', ');
-  const requestLink = `/business/requests/new?${new URLSearchParams({ city: hotel.city || '', area: hotel.area || '', hotel: hotel.name }).toString()}`;
+  // Booking needs a company account: signed-out visitors sign in (or sign
+  // up) first and come straight back to this pre-filled request.
+  const requestLink = `/business/requests/new?${new URLSearchParams(Object.entries({
+    city: hotel.city, area: hotel.area, hotel: hotel.name,
+    check_in: params.get('check_in'), check_out: params.get('check_out'), rooms: params.get('rooms'),
+  }).filter(([, v]) => v)).toString()}`;
+  const bookLink = guest ? requestLink : `/login?redirect=${encodeURIComponent(requestLink)}`;
+  const backTo = publicMode ? `/hotels${params.toString() ? `?${params.toString()}` : ''}` : '/business/hotels';
 
   return (
     <div className="space-y-8">
-      <Link to="/business/hotels" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> All hotels</Link>
+      <Link to={backTo} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy"><ArrowLeft className="w-4 h-4" /> All hotels</Link>
       <Gallery hotel={hotel} />
 
       <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
@@ -114,10 +124,10 @@ function Content() {
             {hotel.room_types[0] && (
               <p className="text-sm text-gray-600">From <span className="text-xl font-bold text-gray-950">{naira(hotel.room_types[0].per_night)}</span> / room / night</p>
             )}
-            <Link to={requestLink} className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl py-3">
-              <Plus className="w-4 h-4" /> Request rooms here
+            <Link to={bookLink} className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-xl py-3">
+              <Plus className="w-4 h-4" /> Book rooms here
             </Link>
-            <p className="text-xs text-gray-500 mt-2">We'll check live availability for your dates.</p>
+            <p className="text-xs text-gray-500 mt-2">{guest ? "We'll check live availability for your dates." : 'Sign in or create a free company account to book.'}</p>
           </div>
           <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3 text-sm">
             {(hotel.check_in_time || hotel.check_out_time) && (
@@ -141,4 +151,13 @@ function Content() {
 
 export default function HotelPage() {
   return <WorkspaceShell><Content /></WorkspaceShell>;
+}
+
+/** /hotels/:id - no sign-in; booking asks for sign-in. */
+export function PublicHotelPage() {
+  return (
+    <div className="bg-gray-50 min-h-[70vh]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><Content publicMode /></div>
+    </div>
+  );
 }

@@ -12,6 +12,9 @@ export const biz = {
   dashboard: () => call('get', 'dashboard'),
   hotels: (params) => call('get', 'hotels', null, params),
   hotel: (id) => call('get', `hotels/${id}`),
+  // No sign-in needed - the landing page and public /hotels pages.
+  publicHotels: (params) => call('get', 'public/hotels', null, params),
+  publicHotel: (id) => call('get', `public/hotels/${id}`),
   team: () => call('get', 'team'),
   addMember: (body) => call('post', 'team', body),
   updateMember: (id, body) => call('patch', `team/${id}`, body),

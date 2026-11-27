@@ -216,3 +216,11 @@ test('inviting someone without an account: they join once they sign up and verif
   assert.equal(joined.membership.role, 'requester');
   assert.equal((await biz.listMembers(db, s.admin)).invites.length, 0);
 });
+
+test('anyone can browse hotels without signing in; the workspace list still needs a company', { skip }, async () => {
+  const pub = await biz.publicHotels({});
+  assert.deepEqual(pub.map((h) => h.name).sort(), ['GRA Suites', 'Trans-Amadi Inn']);
+  const one = await biz.publicHotels({ q: 'trans' });
+  assert.deepEqual(one.map((h) => h.name), ['Trans-Amadi Inn']);
+  await assert.rejects(biz.listHotels(db, s.outsider, {}), { code: 'NO_ORGANIZATION' });
+});

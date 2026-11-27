@@ -5,6 +5,7 @@
 // this turns the `redirect` path into that one-line reason.
 function reasonFor(path) {
   if (!path) return null;
+  if (path.startsWith('/business/requests/new')) return 'to book your rooms';
   if (path.startsWith('/business')) return 'to your company workspace';
   if (path.startsWith('/ops')) return 'to the Booqa operations console';
   if (/^\/hotels\/[^/]+\/book/.test(path)) return 'to complete your booking';
@@ -24,6 +25,7 @@ export function signupSubtitle(redirectTo) {
   const reason = reasonFor(redirectTo);
   // The workspace reasons read "to your company workspace" - fine after
   // "Sign in", wrong after "Create an account".
+  if (redirectTo?.startsWith('/business/requests/new')) return 'Create a free company account to book your rooms.';
   if (redirectTo?.startsWith('/business') || !redirectTo) return "Request and manage your company's accommodation in one place.";
   return reason ? `Create an account ${reason}.` : "Request and manage your company's accommodation in one place.";
 }

@@ -34,7 +34,7 @@ export const BIZ_NAV = [
   {
     label: 'Resources',
     items: [
-      { icon: CalendarCheck, label: 'Request a demo', href: '/request-demo' },
+      { icon: CalendarCheck, label: 'Find hotels', href: '/hotels' },
       { icon: MessageCircle, label: 'Talk to our team', href: '/request-demo?topic=talk' },
       { icon: ShieldCheck, label: 'Privacy policy', href: '/privacy' },
       { icon: FileText, label: 'Terms', href: '/terms' },
@@ -156,9 +156,9 @@ export default function BizNav() {
 
         <div className="hidden lg:flex items-center gap-6">
           <Link to="/business" className="text-[15px] font-semibold text-gray-800 hover:text-navy transition-colors">Sign in</Link>
-          <Link to="/request-demo"
+          <Link to="/hotels"
             className="group inline-flex items-center gap-2 text-[15px] font-semibold text-white bg-navy hover:bg-primary-800 rounded-xl px-5 py-3 shadow-[0_10px_24px_-10px_rgba(16,48,143,0.7)] transition-all duration-300 ease-out hover:-translate-y-0.5">
-            Request a Demo <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            Find hotels <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </Link>
         </div>
 
@@ -197,7 +197,7 @@ export default function BizNav() {
         </nav>
         <div className="grid grid-cols-2 gap-3 p-4">
           <Link to="/business" onClick={() => setMobileOpen(false)} className="text-center text-sm font-semibold border border-gray-300 rounded-xl py-3">Sign in</Link>
-          <Link to="/request-demo" onClick={() => setMobileOpen(false)} className="text-center text-sm font-semibold text-white bg-navy rounded-xl py-3">Request a Demo</Link>
+          <Link to="/hotels" onClick={() => setMobileOpen(false)} className="text-center text-sm font-semibold text-white bg-navy rounded-xl py-3">Find hotels</Link>
         </div>
       </div>
     </header>

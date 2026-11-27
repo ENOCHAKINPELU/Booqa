@@ -7,8 +7,8 @@ import RequestsPage from './pages/business/RequestsPage';
 import NewRequestPage from './pages/business/NewRequestPage';
 import RequestPage from './pages/business/RequestPage';
 import TeamPage from './pages/business/TeamPage';
-import HotelsPage from './pages/business/HotelsPage';
-import HotelPage from './pages/business/HotelPage';
+import HotelsPage, { PublicHotelsPage } from './pages/business/HotelsPage';
+import HotelPage, { PublicHotelPage } from './pages/business/HotelPage';
 import { OpsQueuePage, OpsRequestPage } from './pages/business/OpsPages';
 import BizNav from './components/business/BizNav';
 import BizFooter from './components/business/BizFooter';
@@ -42,7 +42,7 @@ import NotFoundPage from './pages/NotFoundPage';
 const OWN_LAYOUT = /^\/($|request-demo$|become-a-partner$|business(\/|$)|ops(\/|$))/;
 
 // Retired individual-booking entry points.
-const RETIRED = ['/hotels', '/hotels/:hotelId', '/hotels/:hotelId/book', '/search', '/account', '/account/bookings', '/account/bookings/:id', '/account/saved'];
+const RETIRED = ['/hotels/:hotelId/book', '/search', '/account', '/account/bookings', '/account/bookings/:id', '/account/saved'];
 
 function Shell() {
   const { pathname } = useLocation();
@@ -65,6 +65,10 @@ function Shell() {
           <Route path="/business/hotels/:id" element={<HotelPage />} />
           <Route path="/ops" element={<OpsQueuePage />} />
           <Route path="/ops/requests/:id" element={<OpsRequestPage />} />
+
+          {/* Public: anyone can browse hotels; booking asks for sign-in */}
+          <Route path="/hotels" element={<PublicHotelsPage />} />
+          <Route path="/hotels/:id" element={<PublicHotelPage />} />
 
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />

@@ -7,7 +7,7 @@ import { biz, errorMessage } from '../../services/businessApi';
 import { naira, dateRange, INDUSTRIES, inputCls } from './bizFormat';
 import { useAuth } from '../../context/AuthContext';
 
-function OrgSetup() {
+export function OrgSetup() {
   const { reload } = useWorkspace();
   const { guest } = useAuth();
   const [name, setName] = useState('');

@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react';
 import WorkspaceShell, { useWorkspace } from '../../components/business/WorkspaceShell';
 import { biz, errorMessage } from '../../services/businessApi';
 import { inputCls } from './bizFormat';
+import { OrgSetup } from './BusinessHomePage';
 import { tomorrowISO, defaultCheckOut } from '../../utils/dates';
 
 function Field({ label, optional, children, className = '' }) {
@@ -25,8 +26,9 @@ function Content() {
   const [params] = useSearchParams();
   const [form, setForm] = useState({
     city: params.get('city') || 'Port Harcourt', area: params.get('area') || '',
-    check_in: tomorrowISO(), check_out: defaultCheckOut(tomorrowISO()),
-    rooms: 1, project: '', budget_per_night: '',
+    check_in: params.get('check_in') || tomorrowISO(),
+    check_out: params.get('check_out') || defaultCheckOut(params.get('check_in') || tomorrowISO()),
+    rooms: params.get('rooms') || 1, project: '', budget_per_night: '',
     preferences: params.get('hotel') ? `Preferred hotel: ${params.get('hotel')}` : '',
   });
   const [guests, setGuests] = useState([{ name: '', phone: '' }]);
@@ -34,7 +36,9 @@ function Content() {
   const [error, setError] = useState('');
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  if (!org) return <p className="text-gray-600">Set up your company first. <Link to="/business" className="text-navy underline">Go to setup</Link></p>;
+  // New here (e.g. came from a hotel page and just signed up): set up the
+  // company right here - the pre-filled request stays in the address bar.
+  if (!org) return <OrgSetup />;
 
   const submit = async (e) => {
     e.preventDefault();

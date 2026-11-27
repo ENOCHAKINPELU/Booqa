@@ -16,6 +16,8 @@ import { HotelOpsError } from '../lib/hotelops.js';
  *   team                              GET, POST
  *   team/:guestId                     PATCH, DELETE
  *   team/invites/:inviteId            DELETE cancel an invitation
+ *   public/hotels                     GET    PUBLIC: hotel directory (no sign-in)
+ *   public/hotels/:id                 GET    PUBLIC: one hotel
  *   hotels                            GET    hotel directory (search: q, city)
  *   hotels/:id                        GET    one hotel: photos, facilities, rooms
  *   dashboard                         GET
@@ -60,6 +62,22 @@ export default async function handler(req, res) {
   const method = (req.method || 'GET').toUpperCase();
 
   if (path === 'enquiries' && method === 'POST') return handleEnquiry(req, res);
+
+  // Public, read-only: anyone can browse hotels; booking needs sign-in.
+  if (method === 'GET' && path.startsWith('public/')) {
+    const one = path.match(new RegExp(`^public/hotels/(${UUID})$`));
+    const query = { ...req.query };
+    delete query.path;
+    try {
+      if (path === 'public/hotels') return ok(res, await biz.publicHotels(query));
+      if (one) return ok(res, await biz.publicHotel(one[1]));
+      return fail(res, 404, 'Not found', 'NOT_FOUND');
+    } catch (err) {
+      if (err instanceof biz.BizError || err instanceof HotelOpsError) return fail(res, err.status, err.message, err.code);
+      console.error('[business] public', path, err);
+      return fail(res, 500, 'Something went wrong. Please try again.', 'SERVER_ERROR');
+    }
+  }
 
   const route = ROUTES.find(([m, re]) => m === method && re.test(path));
   if (!route) return fail(res, 404, 'Not found', 'NOT_FOUND');

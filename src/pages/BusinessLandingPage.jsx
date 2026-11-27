@@ -1,14 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, Check, Building2, PlayCircle, Zap, CreditCard, BarChart3, Users, CalendarCheck, BadgeCheck,
-  Flame, Ship, HardHat, Briefcase, Search,
+  Landmark, Briefcase, Search, Globe2,
 } from 'lucide-react';
 import BizNav from '../components/business/BizNav';
 import BizFooter from '../components/business/BizFooter';
 import Reveal, { useParallax } from '../components/business/Reveal';
 import DashboardMock from '../components/business/DashboardMock';
 import { BIZ_IMAGES } from '../data/businessImages';
+import HotelSearchBar from '../components/business/HotelSearchBar';
+import { HotelCard } from './business/HotelsPage';
+import { biz } from '../services/businessApi';
 import { track } from '../utils/analytics';
 
 /*
@@ -79,10 +82,10 @@ function Hero() {
             Book and manage stays for your staff, contractors and visitors from one platform.
           </p>
           <div className="animate-fadeUp [animation-delay:240ms] mt-9 flex flex-col sm:flex-row gap-3">
-            <Link to="/request-demo" onClick={() => track('cta_clicked', { cta: 'hero_demo' })}
+            <a href="#find-hotels" onClick={(e) => { e.preventDefault(); track('cta_clicked', { cta: 'hero_find' }); document.getElementById('find-hotels')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); document.querySelector('#find-hotels input')?.focus({ preventScroll: true }); }}
               className="group inline-flex items-center justify-center gap-2 bg-navy hover:bg-primary-800 text-white font-semibold rounded-full px-7 py-4 shadow-[0_14px_30px_-12px_rgba(16,48,143,0.75)] transition-all duration-300 ease-out hover:-translate-y-0.5">
-              Request a Demo <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
+              <Search className="w-4 h-4" /> Find hotels <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
             <a href="#how-it-works"
               className="group inline-flex items-center justify-center gap-2 border-2 border-primary-200 hover:border-navy text-navy font-semibold rounded-full px-7 py-[14px] transition-all duration-300 ease-out hover:-translate-y-0.5">
               <PlayCircle className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" /> How it works
@@ -90,14 +93,14 @@ function Hero() {
           </div>
           <div className="animate-fadeUp [animation-delay:320ms] mt-10 flex items-center gap-4">
             <div className="flex -space-x-2" aria-hidden="true">
-              {[Flame, Ship, HardHat, Briefcase].map((Icon, i) => (
+              {[Building2, Briefcase, Landmark, Globe2].map((Icon, i) => (
                 <span key={i} className="w-10 h-10 rounded-full bg-white border-2 border-white ring-1 ring-gray-200 text-navy flex items-center justify-center shadow-sm">
                   <Icon className="w-4 h-4" />
                 </span>
               ))}
             </div>
             <span className="w-px h-10 bg-gray-200" aria-hidden="true" />
-            <p className="text-sm text-gray-600 leading-snug">Built for oil &amp; gas, marine, construction<br className="hidden sm:block" /> and consulting teams across Nigeria</p>
+            <p className="text-sm text-gray-600 leading-snug">For organizations of every size and sector,<br className="hidden sm:block" /> from growing firms to multinationals</p>
           </div>
         </div>
 
@@ -147,6 +150,14 @@ function Hero() {
       </div>
 
       {/* feature strip */}
+      {/* Find hotels - no sign-in needed */}
+      <div id="find-hotels" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 scroll-mt-28">
+        <div className="animate-fadeUp [animation-delay:400ms] rounded-3xl bg-white border border-gray-200 p-3 sm:p-4 shadow-[0_30px_60px_-35px_rgba(8,28,87,0.45)]">
+          <p className="px-2 pb-3 text-sm font-semibold text-gray-700">Find hotels for your team <span className="font-normal text-gray-500">· browse freely, sign in only to book</span></p>
+          <HotelSearchBar />
+        </div>
+      </div>
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <Reveal className="rounded-3xl border border-gray-200 bg-white/80 backdrop-blur grid sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-x divide-gray-200 shadow-[0_20px_50px_-35px_rgba(8,28,87,0.35)]">
           {HIGHLIGHTS.map(({ icon: Icon, title, body, gold }) => (
@@ -167,6 +178,40 @@ function Hero() {
   );
 }
 
+// Real hotels companies can book, straight from HotelOps - no sign-in.
+function HotelsShowcase() {
+  const [hotels, setHotels] = useState(null);
+  useEffect(() => { biz.publicHotels().then(setHotels).catch(() => setHotels([])); }, []);
+  if (hotels && hotels.length === 0) return null;
+  return (
+    <section id="hotels" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+      <Reveal className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider text-primary-700">Hotels</p>
+          <h2 className="mt-3 font-display text-3xl sm:text-5xl font-extrabold tracking-[-0.02em] text-gray-950">Hotels you can book today</h2>
+          <p className="mt-3 text-lg text-gray-600">Rooms, photos and facilities, straight from each hotel.</p>
+        </div>
+        <Link to="/hotels" className="group inline-flex items-center gap-2 font-semibold text-navy">
+          See all hotels <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </Reveal>
+      {!hotels ? (
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-busy="true">
+          {[0, 1, 2].map((i) => <div key={i} className="h-80 rounded-2xl bg-gray-100 animate-pulse" />)}
+        </div>
+      ) : (
+        <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {hotels.slice(0, 6).map((h, i) => (
+            <Reveal as="li" key={h.id} delay={(i % 3) * 100}>
+              <HotelCard h={h} href={`/hotels/${h.id}`} />
+            </Reveal>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default function BusinessLandingPage() {
   useEffect(() => {
     document.title = 'Booqa — Business accommodation, managed in one place';
@@ -181,6 +226,7 @@ export default function BusinessLandingPage() {
 
       <main>
         <Hero />
+        <HotelsShowcase />
 
         {/* ── How it works ─────────────────────────────────── */}
         <section id="how-it-works" className="bg-gray-50">
@@ -277,15 +323,18 @@ export default function BusinessLandingPage() {
               <h2 className="font-display text-3xl sm:text-5xl font-extrabold tracking-[-0.02em] text-white text-balance">Simplify business accommodation.</h2>
               <p className="mt-4 text-lg text-primary-100 max-w-lg mx-auto">Based in Port Harcourt, serving organizations across Nigeria.</p>
               <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-                <Link to="/request-demo" onClick={() => track('cta_clicked', { cta: 'final_demo' })}
+                <Link to="/hotels" onClick={() => track('cta_clicked', { cta: 'final_find' })}
                   className="group inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-dark text-primary-900 font-bold rounded-full px-8 py-4 transition-all duration-300 ease-out hover:-translate-y-0.5">
-                  Request a Demo <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <Search className="w-4 h-4" /> Find hotels <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
-                <Link to="/business"
+                <Link to="/signup?redirect=%2Fbusiness"
                   className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white text-white font-semibold rounded-full px-8 py-[14px] transition-colors duration-300">
-                  <Search className="w-4 h-4" /> Find hotels
+                  Create a free company account
                 </Link>
               </div>
+              <p className="mt-6 text-sm text-primary-200">
+                Prefer to talk first? <Link to="/request-demo?topic=talk" className="font-semibold text-white underline-offset-4 hover:underline">Talk to our team</Link>
+              </p>
             </div>
           </Reveal>
         </section>
